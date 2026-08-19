@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ATA Chapte Trainer</title>
+<link rel="icon" type="image/png" href="photo/Avionic.png">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Sarabun:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --navy: #1B2A4A;
+    --navy-2: #223a63;
+    --gold: #C9A227;
+    --cream: #F7F4EC;
+    --paper: #FBF9F2;
+    --line: #ddd6c4;
+    --ink: #2a2620;
+    --muted: #8a8570;
+    --teal: #2E6F6E;
+    --red: #A63D40;
+	--White: #FFFFFF;
+	--black: #000000;
+	--ForestGreen: #228B22;
+	--red02: #B22222;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Sarabun', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+  }
+  h1, h2, .serif { font-family: 'Fraunces', serif; }
+  .page { display: none; padding: 2.5rem 3rem 5rem; max-width: 76rem; margin: 0 auto; }
+  .page.active { display: block; }
+  @media (max-width: 700px) { .page { padding: 1.5rem 1.25rem 3rem; } }
+
+  /* ---------- Top bar (persistent across pages) ---------- */
+  .topbar {
+    background: var(--navy); color: var(--cream); padding: 1rem 2rem;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem;
+  }
+  .topbar .brand {
+    display: flex; align-items: center; gap: .5rem; color: var(--gold);
+    text-transform: uppercase; letter-spacing: 0rem; font-size: .95rem; cursor: pointer; user-select: none;
+  }
+  .pill-btn {
+    border: none; border-radius: 999px; padding: .5rem 1.1rem; font-size: .85rem;
+    cursor: pointer; font-family: inherit; font-weight: 600;
+  }
+  .pill-btn.gold { background: var(--gold); color: var(--navy); }
+  .pill-btn.gold:hover { background: #dcb642; }
+  .hidden { display: none !important; }
+	.pill-btn2 {
+    border: none; border-radius: 999px; padding: .5rem 1.1rem; font-size: .85rem;
+    cursor: pointer; font-family: inherit; font-weight: 600;
+  }
+  
+
+  /* ---------- Home banner ---------- */
+  .banner {
+    background: var(--navy);
+    color: var(--cream);
+    border-radius: 12px;
+    padding: 3rem 2rem;
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+  .banner p { margin: .25rem 0; font-size: 1.15rem; }
+  .banner .en { color: #cfd8ea; font-size: 1.05rem; }
+
+  /* ---------- Chapter grid ---------- */
+  .chapter-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+  @media (max-width: 780px) { .chapter-grid { grid-template-columns: 1fr; } }
+
+  .crt-frame {
+    background: var(--navy);
+    border: 6px solid var(--navy-2);
+    border-radius: 8px;
+    aspect-ratio: 1 / 1;
+    padding: .75rem;
+    cursor: pointer;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .crt-frame:hover { transform: scale(1.02); box-shadow: 0 10px 24px rgba(27,42,74,.25); }
+  .crt-frame svg { width: 100%; height: 100%; display: block; }
+  .crt-frame img { width: 100%; height: 100%; object-fit: contain; display: block; border-radius: 4px; }
+
+  .chapter-btn {
+    display: block;
+    width: 100%;
+    margin-top: .9rem;
+    background: none;
+    border: 2px solid var(--gold);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 1.05rem;
+    font-weight: 500;
+    text-align: center;
+    padding: .8rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    line-height: 1.4;
+  }
+  .chapter-btn:hover { background: var(--gold); color: var(--navy); }
+  .chapter-btn .sub { font-size: .85rem; color: var(--muted); }
+  .chapter-btn:hover .sub { color: var(--navy-2); }
+
+  .chapter-btn2 {
+    display: block;
+    width: 100%;
+    margin-top: .9rem;
+    background: (--white);
+    border: 2px solid var(--gold);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 1.05rem;
+    font-weight: 500;
+    text-align: center;
+    padding: .8rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    line-height: 1.4;
+  }
+  .chapter-btn2:hover { background: var(--gold); color: var(--navy); }
+  .chapter-btn2 .sub { font-size: .85rem; color: var(--muted); }
+  .chapter-btn2:hover .sub { color: var(--navy-2); }
+	
+  .chapter-btn3 {
+    display: block;
+    width: 100%;
+    margin-top: .9rem;
+    background: var(--ForestGreen);
+    border: 2px solid var(--navy);
+    color: var(--White);
+    font-family: inherit;
+    font-size: 1.05rem;
+    font-weight: 500;
+    text-align: center;
+    padding: .8rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    line-height: 1.4;
+  }
+  .chapter-btn3:hover { background: var(--red02); color: var(--black); }
+  .chapter-btn3 .sub { font-size: .85rem; color: var(--muted); }
+  .chapter-btn3:hover .sub { color: var(--navy-2); }
+	
+  .ad{
+	  width: 100%;
+	  background: ;
+	  border-radius: 10px;
+	  box-shadow: 0px 8px 8px rgba(0,0,0,0.1);
+      text-align: center;}
+
+
+  /* ---------- Sub page layout ---------- */
+  .sub-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 22rem) 1fr;
+    gap: 2.5rem;
+    align-items: start;
+    margin-bottom: 2.5rem;
+  }
+  @media (max-width: 800px) { .sub-hero { grid-template-columns: 1fr; } }
+
+  .crt-frame.large { cursor: default; }
+  .crt-frame.large:hover { transform: none; box-shadow: none; }
+
+  .sub-title { font-size: 1.8rem; margin: 0 0 .3rem; }
+  .sub-title .code { color: var(--red); }
+  .sub-desc { color: var(--muted); +
+	          font-size: 1rem; 
+	          line-height: 1.7; 
+	          margin-bottom: 1.25rem; }
+	
+  .sub-desc2{ color: var(--navy);
+	          font-family: inherit;
+              font-size: 1.1rem;
+	          text-align: center;} 
+
+  .tag-row { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .tag { background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: .3rem .8rem; font-size: .8rem; color: var(--muted); }
+
+  .section-title { font-size: 1.15rem; font-weight: 600; margin: 2rem 0 .75rem; padding-bottom: .5rem; border-bottom: 2px solid var(--line); }
+  .placeholder-box {
+    border: 1px dashed var(--line); border-radius: 8px; padding: 1.5rem;
+    color: var(--muted); font-size: .95rem; line-height: 1.8; background: var(--paper);
+  }
+  .content-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  @media (max-width: 700px) { .content-grid { grid-template-columns: 1fr; } }
+  .content-card { border: 1px solid var(--line); background: var(--paper); border-radius: 8px; padding: 1.1rem 1.25rem; }
+  .content-card h4 { margin: 0 0 .4rem; font-size: .95rem; color: var(--navy); }
+  .content-card p { margin: 0; font-size: .85rem; color: var(--muted); line-height: 1.6; }
+
+  code.mono, .mono { font-family: 'Space Mono', monospace; }
+	
+</style>
+<script>
+    function toggleContent1() {
+    var content = document.getElementById("more-text1");
+    if (content.style.display === "none") {
+    content.style.display = "block";
+	 } 
+	else {
+    content.style.display = "none";
+	 }
+	}
+	function toggleContent2() {
+    var content = document.getElementById("more-text2");
+    if (content.style.display === "none") {
+    content.style.display = "block";
+	 } 
+	else {
+    content.style.display = "none";
+	 }
+	}
+	function toggleContent3() {
+    var content = document.getElementById("more-text3");
+    if (content.style.display === "none") {
+    content.style.display = "block";
+	 } 
+	else {
+    content.style.display = "none";
+	 }
+	}
+</script>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand" onclick="goTo('home')"><strong>🎓 DEVELOPMENT OF AN EDUCATIONAL WEB-BASED SYSTEM FOR AIRCRAFT SYSTEMS BASED ON AIR TRANSPORT ASSOCIATION STANDARDS</strong></div>
+  <button class="pill-btn gold hidden" id="topbar-home-btn" onclick="goTo('home')">🏠 HOME</button>
+  <button class="pill-btn2" style="background:rgba(247,244,236,.12);color:var(--cream);" onclick="window.location.href='index.html'">📊 แดชบอร์ด/คะแนน</button>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- HOME PAGE -->
+<!-- ============================================================ -->
+<div class="page active" id="page-home">
+  <div class="banner">
+    <p>สื่อการเรียนรู้เช่น ATA chapter</p>
+    <p class="en">(Air Transport Association)</p>
+  </div>
+
+  <div class="chapter-grid">
+    <!-- HYD -->
+    <div>
+      <div class="crt-frame" onclick="goTo('hyd')">
+        <img src="Photo/hyd.png" alt="HYD system diagram" />
+      </div>
+      <button class="chapter-btn" onclick="goTo('hyd')">
+        Hydraulic Power <span class="sub">(HYD)<br>ATA chapter 29</span>
+      </button>
+    </div>
+
+    <!-- BLEED -->
+    <div>
+      <div class="crt-frame" onclick="goTo('bleed')">
+        <img src="Photo/bleed.png" alt="BLEED system diagram" />
+      </div>
+      <button class="chapter-btn" onclick="goTo('bleed')">
+        Pneumatic System <span class="sub">(BLEED)<br>ATA chapter 36</span>
+      </button>
+    </div>
+
+    <!-- WHEEL -->
+    <div>
+      <div class="crt-frame" onclick="goTo('wheel')">
+        <img src="Photo/wheel.png" alt="WHEEL system diagram" />
+      </div>
+      <button class="chapter-btn" onclick="goTo('wheel')">
+        Landing Gear System <span class="sub">(WHEEL)<br>ATA chapter 32</span><br>
+      </button>
+    </div>
+  </div>
+</div>
+	
+	
+<!-- ============================================================ -->
+<!-- SUB PAGE TEMPLATE (repeated x3) -->
+<!-- ============================================================ -->
+<!-- HYD -->
+<div class="page" id="page-hyd">
+  <div class="sub-hero">
+    <div class="crt-frame large" style="max-width:22rem;">
+      <img src="Photo/hyd.png" alt="HYD system diagram" />
+	  <button class="chapter-btn2" onclick="window.location.href='WEB/hyd_ecam.html'"><strong>ระบบจำลองหน้าจอ ECAM(HYD)</strong></button>
+	  </div>
+    <div>
+      <h2 class="sub-title"><span class="code">ATA 29</span> — Hydraulic Power (HYD)</h2>
+      <div class="tag-row">
+        <span class="tag">GREEN SYSTEM</span>
+        <span class="tag">BLUE SYSTEM</span>
+        <span class="tag">YELLOW SYSTEM</span>
+        <span class="tag">RAT · PTU · ELEC PUMP</span>
+		  
+      </div>
+		<p class="sub-desc">Hydraulic Power คือ ระบบที่ใช้ ของเหลวไฮดรอลิกที่มีแรงดันสูง ในการส่งกำลังจากแหล่งกำเนิดกำลัง เช่น Hydraulic Pump ไปยังอุปกรณ์ปลายทาง เช่น Hydraulic Actuator เพื่อสร้างแรงและการเคลื่อนที่ ระบบ Hydraulic มีความสำคัญมากในอากาศยาน เพราะสามารถสร้างแรงขนาดใหญ่จากอุปกรณ์ที่มีขนาดและน้ำหนักไม่มากนัก จึงเหมาะสำหรับการควบคุมอุปกรณ์ที่ต้องใช้แรงสูง เช่น Landing Gear,Flight Controls,Flaps,Slats,Spoilers,Wheel Brakes,Nose Wheel Steering,Thrus Reverser,Flight Control Actuators โดยทั่วไปเครื่องบินขนาดใหญ่สามารถใช้แรงดันระบบระดับประมาณ 3,000–5,000 psi ขึ้นอยู่กับการออกแบบของเครื่องบินแต่ละรุ่น
+		<strong>หน้าที่หลักของระบบ Hydraulic ระบบ Hydraulic มีหน้าที่หลัก 4 ประการ</strong> <br>
+		<strong>Generate</strong> — สร้างกำลังHydraulic Pump ทำหน้าที่เปลี่ยนพลังงานกลหรือพลังงานไฟฟ้าให้เป็น Hydraulic Flow และ Pressureตัวอย่างแหล่งกำลังของ Pump ได้แก่Enging Electric MotorAir MotorPower Transfer Unit<br>
+		<strong>Store</strong> — เก็บและสำรอง Hydraulic Fluid Hydraulic Reservoir ทำหน้าที่เก็บ Hydraulic Fluid และเป็นแหล่งจ่ายของเหลวให้กับ Pumpนอกจากนี้ Reservoir ยังช่วยให้มี Fluid สำรองแยกอากาศออกจาก Fluid ชดเชยการเปลี่ยนแปลงปริมาตร รองรับการขยายตัวของ Fluid ช่วยระบายความร้อนบางส่วน</p>
+	   <div id="more-text1" style="display: none;">
+       <p class="sub-desc"><strong>Distribute</strong> — ส่งกำลังHydraulic Fluid จะถูกส่งผ่านPipes,Tubes,Hoses,Valves,Filters,Manifolds ไปยัง Hydraulic Actuator หรือ Hydraulic Moto <br><strong>Actuate</strong> — เปลี่ยนแรงดันเป็นการเคลื่อนที่ เมื่อ Hydraulic Fluid ที่มีแรงดันสูงเข้าสู่ Actuator จะเกิดแรงขึ้นกับพื้นที่ของ Piston หลักการพื้นฐานคือ Force = Pressure × Area ดังนั้น ถ้าเพิ่ม Pressure หรือเพิ่มพื้นที่ของ Piston ก็สามารถสร้างแรงได้มากขึ้น 
+	  
+	   <strong>หลักการทำงานพื้นฐานของ</strong> Hydraulic System เป็นลำดับ:Reservoir → Pump → Pressure Control → Valve → Actuator → Return → Reservoir ตัวอย่างการทำงานของ Landing Gear <br>Hydraulic Fluid อยู่ใน Reservoir <br>Pump ดูด Fluidจาก Reservoir <br>Pump เพิ่ม Pressure ให้กับ Fluid <br>Fluid ถูกส่งเข้าสู่ Hydraulic Manifold <br>Selector/Control Valve เลือกทิศทางการไหล <br>Fluid เข้าสู่ Landing Gear Actuator Actuator<br>เคลื่อนที่ Landing Gear Extension หรือ Retractionเกิดขึ้น <br>Fluid จากอีกด้านของ Actuatorไหลกลับ <br>Return Fluid ผ่าน Filter <br>Fluid กลับเข้าสู่ Reservoir  
+	   <br>
+	   <strong> Hydraulic Fluid</strong> เป็นตัวกลางในการถ่ายโอนกำลังภายในระบบคุณสมบัติที่ต้องการ ได้แก่ ทนต่อแรงดันสูง,มีความหนืดเหมาะสม,ทนต่ออุณหภูมิมีคุณสมบัติหล่อลื่น,มีความเสถียรทางเคมี,ไม่ทำลายวัสดุของระบบ,มีคุณสมบัติทนไฟตามข้อกำหนดของ Fluid ที่ใช้ 
+	   <br><strong>1.Hydraulic Reservoir</strong> หน้าที่ Reservoir เป็นจุดเริ่มต้นและจุดกลับของ Hydraulic Fluid หน้าที่สำคัญ ได้แก่ <br>1.1 เก็บ Fluid เป็นแหล่งเก็บ Hydraulic Fluid สำหรับจ่ายให้ Pump <br>1.2 ชดเชยการเปลี่ยนแปลงของปริมาตร เมื่อ Actuator ทำงาน ปริมาณ Fluid ที่อยู่ในแต่ละส่วนของระบบจะเปลี่ยนไป Reservoir ช่วยรองรับการเปลี่ยนแปลงนี้ <br>1.3 ช่วยแยกอากาศAir ที่ปะปนอยู่ใน Fluid สามารถทำให้ระบบทำงานผิดปกติได้ Reservoir จึงถูกออกแบบให้ช่วยลดการปะปนของอากาศ <br>1.4 รองรับการเติมและการ Service 
+	   <br><strong>2.Reservoir Pressurization</strong> บางระบบไม่ได้ปล่อยให้ทำงานที่ Atmospheric Pressure อย่างเดียว แต่มีการ Pressurize Reservoirเหตุผลสำคัญคือช่วยให้ Pump มี Fluid Supply ที่เหมาะสม โดยเฉพาะเมื่อเครื่องบินอยู่ในระดับความสูงมากการ Pressurization ช่วยลดโอกาสเกิดPump Cavitation และช่วยให้ Pump สามารถดูด Fluid ได้อย่างเหมาะสม 
+	   <br><strong>3.Hydraulic Pump</strong> เป็นหนึ่งในอุปกรณ์ที่สำคัญที่สุดของระบบหน้าที่ของ Pump คือสร้าง Hydraulic Flowสิ่งสำคัญที่ต้องเข้าใจคือ:Pump เป็นผู้สร้าง Flow ส่วน Resistance ในระบบทำให้เกิด Pressure เมื่อ Fluid ถูกส่งไปยังระบบที่มี Load หรือ Resistance ความดันจึงเกิดขึ้นตามสภาวะการทำงาน 
+	   <br><strong>4.ชนิดของ Hydraulic Pump</strong> <br>4.1 Engine Driven Pump — EDPEDP = Engine Driven Pumpเป็น Pump ที่ได้รับพลังงานจากเครื่องยนต์ข้อดีคือสามารถสร้าง Hydraulic Power ได้อย่างต่อเนื่องขณะที่ Engine ทำงานตัวอย่างการใช้งานพบในระบบ Hydraulic ของ Transport Aircraft หลายรุ่น <br>4.2 Electric Motor Driven Pump — EMDPEMDP = Electric Motor Driven Pumpเป็น Pump ที่ขับด้วย Electric Motorใช้สำหรับAuxiliary Hydraulic PowerBackupGround Operation ระบบที่ต้องการ Hydraulic Pressure โดยไม่ต้องใช้ Engine <br>4.3 Air Driven Pumpบาง Aircraft อาจใช้ระบบที่ขับ Pump ด้วย Pneumatic/Air Power ขึ้นอยู่กับ Aircraft Design 
+	   <br><strong>5.Hydraulic Power Transfer Unit — PTU PTU = Power Transfer Unit</strong> PTU ใช้สำหรับถ่ายโอน Hydraulic Power ระหว่าง Hydraulic Systems โดยหลักการคือถ่ายโอนกำลังผ่าน Mechanical/Hydraulic Motor-Pump arrangement โดยไม่จำเป็นต้องผสม Hydraulic Fluid ของแต่ละระบบเข้าด้วยกัน</p>
+      </div>
+		<!-- ปุ่มสำหรับกดคลิก -->
+    <button class="chapter-btn" onclick="toggleContent1()"><strong>อ่านเพิ่มเติม</strong></button>
+	<p class="sub-desc2"><strong>การเรียนรู้ด้วยเสียง 🔊</strong></p>
+     <audio controls class="ad">
+     <source src="song/ATA Chapter 29.wav" type="audio/mpeg">
+       เบราว์เซอร์ของคุณไม่รองรับการเล่นเสียง
+     </audio>
+    </div>
+  </div>
+	
+<button class="chapter-btn3" onclick="window.location.href='quiz/quiz_1_hydraulic.html'"><strong>แบบทดสอบการเรียนรู้ระบบจำลองหน้าจอ ECAM Hydraulic Power(HYD)</strong></button>
+	
+  <div class="section-title">เนื้อหาที่ควรเรียนรู้</div>
+  <div class="content-grid">
+    <div class="content-card"><h4>แหล่งกำเนิดแรงดัน</h4><p>Engine-driven pump, Electric pump, PTU (Power Transfer Unit), RAT (Ram Air Turbine)</p></div>
+    <div class="content-card"><h4>หน้าที่หลักของระบบ Hydraulic</h4>
+    <p>Hydraulic Pump ทำหน้าที่เปลี่ยนพลังงานกลหรือพลังงานไฟฟ้าให้เป็น Hydraulic Flow และ Pressure ตัวอย่างแหล่งกำลังของ Pump ได้แก่ Engine ElectricMotor AirMotor PowerTransferUnit</p>
+    </div>
+    <div class="content-card"><h4>การเฝ้าระวังและเตือน</h4><p>1. Failure Detection — การตรวจจับความขัดข้อง ระบบ Hydraulic จะมีการตรวจสอบค่าต่างๆ เพื่อดูว่าระบบทำงานปกติหรือไม่ เช่น </p><p>1.1Hydraulic Pressure → ตรวจแรงดัน</p><p> 1.2Fluid Quantity → ตรวจปริมาณน้ำมัน</p><p> 1.3Fluid Temperature → ตรวจอุณหภูมิ </p><p>1.4Pump Status → ตรวจการทำงานของ Pump 1.5Leakage → ตรวจการรั่วไหลหากค่าผิดปกติ ระบบจะส่งสัญญาณเตือนให้นักบินหรือ Maintenance ทราบ </p>
+	<p>2. Warning — การเตือน ตัวอย่างการเตือนที่พบได้ เช่น</p><p>2.1LOW PRESSURE → Hydraulic Pressure ต่ำกว่าค่าที่กำหนด </p><p>2.2LOW QUANTITY → Hydraulic Fluid มีปริมาณต่ำ </p><p>2.3 OVERHEAT → Hydraulic Fluid หรือระบบมีอุณหภูมิสูงเกินกำหนด การเตือนอาจแสดงผ่าน Warning Light, ECAM/EICAS, Display หรือระบบ Monitoring ทั้งนี้ขึ้นอยู่กับ Aircraft Type</p>
+    </div>
+    <div class="content-card"><h4>Failure & Backup</h4><p> 1.Failure — เมื่อระบบขัดข้อง เมื่อ Hydraulic System หรือ Pump เกิด Failure ระบบจะตรวจจับความผิดปกติและแจ้งเตือน จากนั้น Aircraft จะใช้ Backup/Alternate Hydraulic Source หากมีการออกแบบไว้ ตัวอย่างแนวคิด: Normal Hydraulic System Failure → Failure Detection→Warning/Indication → Backup / Alternate System Activated → ยังคงจ่าย Hydraulic Power ให้ระบบสำคัญ</p> 
+	<p>2.Backup — ระบบสำรอง ระบบสำรองอาจประกอบด้วยStandby Hydraulic SystemElectric Hydraulic PumpAccumulator PTU Alternate Hydraulic Circuit หน้าที่คือช่วยให้ ระบบสำคัญยังสามารถทำงานได้เมื่อระบบหลักเกิดขัดข้อง จำง่าย: Monitor → Detect Failure → Warning → Backup → Maintain Critical Functionหัวใจสำคัญ: Hydraulic System ของเครื่องบินถูกออกแบบให้มี Monitoring + Warning + Redundancy/Backup เพื่อเพิ่มความปลอดภัยและความสามารถในการควบคุมเครื่องบินเมื่อเกิดความขัดข้อง ทั้งนี้ Backup ที่มีและ Function ที่ยังใช้งานได้จะขึ้นอยู่กับ Aircraft Type</p>
+    </div>
+  </div>
+
+  <div class="section-title">สรุป</div>
+  <div class="placeholder-box"><p>
+    ✈️ สรุป ATA 29 — Hydraulic Power Hydraulic Power คือ ระบบที่ใช้ Hydraulic Fluid ที่มีแรงดันสูง ในการส่งกำลังไปยังอุปกรณ์ต่าง ๆ ของเครื่องบิน เช่น Flight Controls, Landing Gear และ Brakes</p> 
+	<p>🔧 อุปกรณ์หลัก Reservoir → เก็บ Hydraulic Fluid Pump → สร้าง Hydraulic Flow และ Pressure Filter → กรองสิ่งสกปรก/Contamination Valve → ควบคุมทิศทางและแรงดันของ Fluid Accumulator → เก็บพลังงาน Hydraulic และช่วยสำรองแรงดัน Actuator → เปลี่ยน Hydraulic Power เป็นการเคลื่อนที่ Heat Exchanger → ควบคุมอุณหภูมิ Hydraulic Fluid PTU → ถ่ายทอดกำลัง Hydraulic ระหว่างระบบตามการออกแบบของเครื่องบิน</p> 
+    <p>🔄 หลักการทำงาน Reservoir → Pump → Filter/Pressure Control → Valve → Actuator → Return → Reservoir</p>
+	<p>✈️ ระบบ Hydraulic ใช้กับ</p><p>
+	  1.Flight Controls</p><p>
+	  2.Landing Gear</p><p>
+	  3.Brakes</p><p>
+	  4.Nose Wheel Steering</p><p>
+	  5.Flaps / Slats</p><p>
+	  6.Spoilers</p><p>
+	  7.Thrust Reverser</p>
+    <p>⚠️ ปัญหาที่พบบ่อย Hydraulic Leakage Low Pressure Low Fluid Quantity Overheat Contamination Pump Failure Air in Hydraulic System Cavitation</p> 
+    <p>🛠️ Maintenance ที่สำคัญตรวจสอบ Fluid Quantity, Leakage, Pressure, Temperature, Filter และ Component Condition รวมถึงทำ Functional/Leak Test ตาม AMM ของ Aircraft Type</p> 
+   <p>จำง่ายที่สุด Reservoir เก็บ → Pump สร้าง → Valve ควบคุมส่งผ่าน และจำกัดแรงดันน้ำมันไฮดรอลิกในเครื่องบิน → Actuator ขับเคลื่อน → Fluid ของเหลว หัวใจของ ATA29:Hydraulic Fluid + Pressure + Flow = Hydraulic Power</p> 
+  </div>
+</div>
+
+ <!-- BLEED -->	
+<div class="page" id="page-bleed">
+  <div class="sub-hero">
+    <div class="crt-frame large" style="max-width:22rem;">
+      <img src="Photo/bleed.png" alt="BLEED system diagram" />
+	  <button class="chapter-btn2" onclick="window.location.href='WEB/pneumatic_ecam.html'"><strong>ระบบจำลองหน้าจอ ECAM(BLEED)</strong></button>
+    </div>
+    <div>
+      <h2 class="sub-title"><span class="code">ATA 36</span> — Pneumatic System (BLEED)</h2>
+      <div class="tag-row">
+        <span class="tag">ENGINE BLEED 1 / 2</span>
+        <span class="tag">APU BLEED</span>
+        <span class="tag">RAM AIR</span>
+        <span class="tag">PRESSURE REGULATOR</span>
+      </div>
+      <p class="sub-desc">
+        <strong>1.ความหมายของ Pneumatic System Pneumatic System</strong> คือ ระบบที่ใช้ อากาศอัด (Compressed Air) เป็นแหล่งพลังงานหรือเป็นแหล่งความร้อนสำหรับระบบต่างๆ ของอากาศยาน ในเครื่องบินพาณิชย์ แหล่งอากาศอัดหลักมักมาจาก Engine Compressor และอาจมีแหล่งอื่น เช่น APU หรือ Ground Pneumatic Source ขึ้นอยู่กับ Aircraft Type คำว่า BLEED AIR หมายถึง อากาศที่ถูกนำออกจาก Compressor ของเครื่องยนต์หรือแหล่งกำเนิดอื่น เพื่อนำไปใช้งานในระบบต่างๆ<br>
+		<strong>2.หน้าที่ของ Pneumatic / Bleed Air System</strong> Bleed Air สามารถนำไปใช้กับระบบสำคัญ เช่น: <br>Air Conditioning / ECS<br>Pressurization<br>Engine Starting<br>Wing / Engine Anti-Ice<br>Water Tank Pressurization<br>
+		ดังนั้น ATA 36 จึงมีความสัมพันธ์กับหลายระบบ โดยเฉพาะ ATA 30 Ice & Rain Protection</p>
+		
+	  <div id="more-text2" style="display: none;">
+       <p class="sub-desc">
+	   <strong>3.แหล่งกำเนิด Pneumatic Air </strong>แหล่งกำเนิดหลักที่พบได้ ได้แก่<br>
+       <strong>3.1Engine Bleed Air </strong>นำอากาศจาก Compressor Stage ของเครื่องยนต์มาใช้ ข้อดีคือมีอากาศอัดพร้อมใช้งานเมื่อ Engine ทำงาน แต่การนำอากาศออกจาก Compressor มีผลต่อ Engine Performance จึงต้องมีการควบคุมอย่างเหมาะสม<br>
+       <strong>3.2APU Bleed Air</strong> APU = Auxiliary Power Unitสามารถใช้เป็นแหล่ง Pneumatic Air โดยเฉพาะขณะอยู่บนพื้น เช่น Engine Start,Air Conditioning,Ground Operation<br>		   
+       <strong>3.3External / Ground Pneumatic Source</strong> บนพื้นสามารถใช้แหล่ง Pneumatic จาก Ground Equipmentเพื่อช่วย Engine Start,Air Conditioning,Maintenance Operation,โดยไม่จำเป็นต้องใช้ APU ในบางสถานการณ์<br>
+	   <strong>4.หลักการของ Bleed Air</strong> หลักการพื้นฐานสามารถจำเป็นลำดับ:Engine Compressor → Bleed Air Extraction → Pressure / Temperature Control → Valve → Pneumatic Manifold → Aircraft Users → ระบบต่างๆ<br>ตัวอย่าง:Engine → Compressor → Bleed Valve → Precooler → Manifold → Air Conditioning<br>
+	   <strong>5.Bleed Air Temperature</strong> อากาศที่นำออกจาก Compressor มีอุณหภูมิสูงมาก ดังนั้นต้องมีระบบควบคุมอุณหภูมิ เช่น Precooler<br>Precoolerทำหน้าที่ลดอุณหภูมิของ Bleed Air ให้อยู่ในช่วงที่ระบบสามารถใช้งานได้ โดยทั่วไปใช้ Cooling Air จากบริเวณ Fan Air หรือระบบที่ออกแบบไว้สำหรับ Aircraft Type นั้น<br>
+	   <strong>6.Bleed Air Pressure</strong> นอกจาก Temperature แล้ว ระบบต้องควบคุม Pressureถ้า Pressure สูงเกินไปอาจทำให้เกิดความเสียหายต่อ Pneumatic Componentsจึงมีอุปกรณ์ควบคุม เช่น<br>Pressure Regulating Valve,Pressure Control System,Shutoff Valve,Check Valve,Overpressure Protection<br>
+	   <strong>7.Bleed Air Valve</strong> Valve เป็นอุปกรณ์สำคัญในการควบคุม Bleed Air หน้าที่ของ Valve ได้แก่<br>1.เปิด/ปิด Bleed Air<br>2.ควบคุม Flow<br>3.ควบคุม Pressure<br>4.แยกส่วนที่เกิด Failure<br>5.ป้องกันการไหลย้อนกลับ<br>ตัวอย่าง Valve ที่พบในระบบ ได้แก่<br><strong>Bleed Air Valve</strong> ควบคุมการนำอากาศออกจาก Engine<br><strong>Pressure Regulating Valve</strong> ควบคุมแรงดัน<br><strong>Shutoff Valve</strong> ตัดการจ่ายอากาศ<br><strong>Check Valve</strong> ป้องกันการไหลย้อนกลับ<br>
+	   <strong>8.Cross-Bleed System</strong> Cross-Bleed คือการนำ Bleed Air จากระบบหนึ่งไปช่วยอีกระบบหนึ่ง<br>ตัวอย่าง:Engine 1 Bleed → Cross-Bleed Valve → Manifold → Engine 2 Start<br>ทำให้สามารถใช้ Pneumatic Air จากอีกด้านเพื่อช่วยในการ Start Engine ได้<br>
+	   <strong>9.Pneumatic System กับ Engine Starting</strong> หนึ่งในหน้าที่สำคัญของ Pneumatic System คือช่วย Start Engine<br>ลำดับพื้นฐาน:Bleed Air → Air Starter → Starter หมุน Compressor → Compressor มีความเร็วเพียงพอ → Fuel + Ignition → Engine Start<br>ดังนั้นหาก Pneumatic Pressure ไม่เพียงพอ อาจทำให้ Engine Start ไม่ได้หรือ Start ได้ไม่สมบูรณ์<br>
+	   <strong>10.Pneumatic System กับ Air Conditioning</strong> Bleed Air สามารถนำไปใช้เป็นแหล่งอากาศสำหรับระบบปรับอากาศ แต่ Bleed Air จาก Engine มีอุณหภูมิและ Pressure สูงจึงต้องผ่านระบบควบคุมก่อน<br>ตัวอย่าง:Bleed Air → Pressure Regulation → Cooling / Precooling → Air Conditioning Pack → Cabin<br>
+	   <strong>11.Pneumatic System กับ Anti-Ice</strong> Bleed Air ที่มีอุณหภูมิสูงสามารถนำไปใช้สำหรับ Anti-Icing เช่น Engine Anti-Ice,Wing Anti-Ice<br>หลักการคือส่งอากาศร้อนผ่านบริเวณที่ต้องการป้องกันการเกิดน้ำแข็ง Hot Bleed Air → Anti-Ice Duct → Heated Surface<br>
+	   <strong>12.Pneumatic Ducting</strong> Bleed Air ถูกส่งผ่านระบบ Ducting ส่วนประกอบที่เกี่ยวข้อง ได้แก่<br>1.Duct<br>2.Tube<br>3.Coupling<br>4.Clamp<br>5.Seal<br>6.Insulation<br>7.Pressure/Temperature Sensor<br><strong>Duct ต้องสามารถทนต่อ<br></strong>1.High Temperature<br>2.High Pressure<br>3.Vibration<br>4.Thermal Expansion<br>
+	   <strong>13.Pneumatic Leakage</strong> Leakage เป็นปัญหาสำคัญของ Pneumatic System อาจเกิดจาก<br>1.Duct Crack<br>2.Loose Clamp<br>3.Damaged Seal<br>4.Damaged Coupling<br>5.Valve Leakage<br>6.Duct Damage<br>ผลที่เกิดขึ้นอาจเป็น Bleed Air Leak → Pressure Loss → Temperature Increase / System Abnormal → Bleed System Failure หรือ Warning<br>
+	   <strong>14.Bleed Air Leak Detection</strong> เครื่องบินบางรุ่นมีระบบตรวจจับ Bleed Air Leak อาจตรวจสอบจาก,Temperature,Pressure,Leak Detection Sensor,Duct Temperature,System Logic<br>หากพบอุณหภูมิสูงผิดปกติในบริเวณ Duct ระบบสามารถสั่งปิด Valve เพื่อแยกบริเวณที่มีปัญหา<br>
+	   <strong>15.การเฝ้าระวังและเตือน — Monitoring & Warning</strong> ระบบ Pneumatic จะมีการตรวจสอบค่าต่าง ๆ เพื่อให้มั่นใจว่าระบบทำงานอยู่ในขอบเขตที่กำหนด<br><strong>ค่าที่สำคัญ</strong><br>1.Pressureตรวจสอบ Pneumatic/Bleed Pressure<br>2.Temperatureตรวจสอบ Bleed Air และ Duct Temperature<br>3.Valve Positionตรวจสอบว่า Valve อยู่ในตำแหน่งที่ควรเป็นหรือไม่<br>4.Flowตรวจสอบการไหลของ Bleed Air ตามที่ระบบต้องการ<br>5.Leak Detectionตรวจสอบความผิดปกติของอุณหภูมิหรือสภาวะที่อาจบ่งชี้ถึง Duct Leak<br>
+       <strong>16. Warning ที่อาจพบ</strong> เมื่อระบบทำงานผิดปกติ อาจมีการแจ้งเตือน เช่น<br>🔴 BLEED OVERHEAT อุณหภูมิ Bleed Air หรือ Duct สูงเกินค่าที่กำหนด<br>🔴 BLEED FAULT ระบบ Bleed ทำงานผิดปกติ<br>🔴 LOW PRESSURE Bleed Pressure ต่ำกว่าที่กำหนด<br>🔴 LEAK ระบบตรวจพบหรือสงสัยว่ามี Bleed Air Leakage<br>🔴 VALVE FAULT Valve ไม่ทำงานหรือ Position ไม่ตรงกับที่ระบบสั่ง<br>
+
+		  </p>
+      </div>
+		
+		<!-- ปุ่มสำหรับกดคลิก -->
+    <button class="chapter-btn" onclick="toggleContent2()"><strong>อ่านเพิ่มเติม</strong></button>
+	<p class="sub-desc2"><strong>การเรียนรู้ด้วยเสียง 🔊</strong></p>
+     <audio controls class="ad">
+     <source src="song/ATA Chapter 36.wav" type="audio/mpeg">
+       เบราว์เซอร์ของคุณไม่รองรับการเล่นเสียง
+     </audio>
+    </div>
+  </div>
+<button class="chapter-btn3" onclick="window.location.href='quiz/quiz_2_pneumatic.html'"><strong>แบบทดสอบการเรียนรู้ระบบจำลองหน้าจอ ECAM ECAM(BLEED)</strong></button>
+  <div class="section-title">เนื้อหาที่ควรเรียนรู้</div>
+  <div class="content-grid">
+    <div class="content-card"><h4>แหล่งลม (Air Sources)</h4><p>Engine bleed port (HP/IP), APU bleed, Ground cart</p></div>
+    <div class="content-card"><h4>หน้าที่หลักของระบบ Pneumatic (BLEED)</h4><p>ATA 36 — Pneumatic System มีหน้าที่หลักในการจัดหาและควบคุม Compressed Air / Bleed Air สำหรับระบบต่าง ๆ ของอากาศยาน ได้แก่<br>Engine Starting — จ่ายอากาศให้ Air Starter เพื่อช่วยหมุนเครื่องยนต์ขณะ Start<br>Air Conditioning — จ่ายอากาศให้ระบบปรับอากาศ<br>Pressurization — เป็นแหล่งอากาศสำหรับควบคุมความดันภายในห้องโดยสาร<br>Anti-Ice — จ่ายอากาศร้อนเพื่อป้องกันการเกิดน้ำแข็งในบางส่วนของเครื่องบิน<br>Pneumatic Equipment — จ่ายอากาศให้ระบบหรืออุปกรณ์ที่ต้องใช้ Pneumatic Power<br>Cross-Bleed / Air Distribution — กระจายและถ่ายโอน Bleed Air ระหว่างระบบตามความต้องการ<br>🧠หลักการจำ:ATA 36 = สร้าง/รับอากาศอัด → ควบคุม Pressure & Temperature → กระจาย Air → นำไปใช้กับ Start, Air Conditioning, Pressurization และ Anti-Ice</p></div>
+    <div class="content-card"><h4>การเฝ้าระวังและเตือน</h4><p>ระบบ Pneumatic จะตรวจสอบการทำงานอย่างต่อเนื่อง โดยค่าหลักที่เฝ้าระวังคือ<br>Pressure — ตรวจสอบแรงดันของ Bleed Air<br>Temperature — ตรวจสอบอุณหภูมิของ Bleed Air และ Duct<br>Valve Position — ตรวจสอบการเปิด–ปิดของ Valve<br>Flow — ตรวจสอบการไหลของอากาศ<br>Leak Detection — ตรวจจับความผิดปกติหรือการรั่วของ Duct<br>เมื่อพบความผิดปกติ ระบบจะแจ้งเตือนนักบินผ่าน Warning/Message หรือ ECAM/EICAS แล้วแต่ Aircraft Type เช่น<br>BLEED FAULT — ระบบ Bleed ขัดข้อง<br>OVERHEAT — อุณหภูมิสูงเกินกำหนด<br>LOW PRESSURE — แรงดันต่ำ<br>LEAK — ตรวจพบหรือสงสัยการรั่วไหล<br>หากเกิดความผิดปกติ ระบบสามารถ ปิดหรือแยกส่วนที่มีปัญหา (Isolation) เพื่อป้องกันความเสียหายลุกลาม และอาจเปลี่ยนไปใช้แหล่ง Pneumatic อื่นตามการออกแบบของเครื่องบิน</p></div>
+    <div class="content-card"><h4>Failure & Backup</h4><p>Failureปัญหาที่พบบ่อย:Bleed Valve Failure,Low Pressure,Overheat,Duct Leakage,Cross-Bleed Valve Failure,Bleed Source Failure<br>Backup เมื่อเกิด Failure ระบบอาจใช้:Engine อื่น → Cross-Bleed → APU Bleed → Ground Pneumatic และอาจ Isolate ส่วนที่เสีย เพื่อไม่ให้กระทบระบบอื่น</p></div>
+  </div>
+
+  <div class="section-title">สรุป</div>
+  <div class="placeholder-box">
+    ATA 36 — Pneumatic System Pneumatic System = ระบบที่ใช้อากาศอัดเป็นแหล่งพลังงาน/อากาศสำหรับระบบต่าง ๆ ของเครื่องบิน แหล่งกำเนิด Engine Bleed APU Bleed Ground Pneumatic Source อุปกรณ์หลัก Bleed Valve Pressure Regulating Valve Shutoff Valve Check Valve Precooler Manifold Duct Sensors<br>ใช้กับ:Engine Starting Air Conditioning Pressurization Engine/Wing Anti-Ice Pneumatic Users อื่น ๆ <br>🔄 จำ Flow SOURCE → BLEED VALVE → PRESSURE/TEMPERATURE CONTROL → MANIFOLD → USER<br>⚠️ปัญหาที่พบบ่อย (Common Problems)<br>Bleed Air Leakage — ท่อหรือ Duct รั่ว ทำให้แรงดันลดลง<br>Bleed Overheat — อุณหภูมิ Bleed Air สูงเกินกำหนด<br>Low Bleed Pressure — แรงดันอากาศต่ำกว่าค่าที่กำหนด<br>Bleed Valve Failure — Valve เปิด/ปิดหรือควบคุมไม่ได้ตามคำสั่ง<br>Duct Damage — Duct แตกร้าว ชำรุด หรือเกิดความเสียหายจากความร้อน<br>Sensor Failure — Pressure/Temperature Sensor ให้ค่าผิดปกติ<br>Cross-Bleed Valve Failure — ไม่สามารถถ่ายโอน Bleed Air ระหว่างระบบได้<br>Precooler Problem — ระบายความร้อนได้ไม่เพียงพอ ทำให้ Bleed Air ร้อนเกินไป<br>
+	🛠️ Maintenance (การบำรุงรักษา)<br>การ Maintenance ของ ATA 36 เน้นการตรวจสอบ Pressure, Temperature, Leakage และสภาพของ Components<br>1. Visual Inspection<br>ตรวจ Duct, Pipe, Hose และ Fitting<br>ตรวจรอยแตก รอยไหม้ การกัดกร่อน และความเสียหาย<br>ตรวจ Clamp และ Connection ว่ายึดแน่น<br>ตรวจหาร่องรอยการรั่ว<br>2. Operational / Functional Test<br>ตรวจการทำงานของ Bleed Valve<br>ตรวจการเปิด–ปิดของ Shutoff Valve<br>ตรวจ Cross-Bleed Valve<br>ตรวจ Pressure และ Temperature<br>ตรวจการตอบสนองของระบบเมื่อเกิดความผิดปกติ<br>3. Leak Test<br>ตรวจสอบการรั่วของ Pneumatic Duct และ Connection<br>ตรวจสอบตามวิธีและค่าที่กำหนดใน AMM ของ Aircraft Type<br>4. Component Inspection<br>ตรวจ Valve<br>Filter<br>Precooler<br>Pressure/Temperature Sensor<br>Duct และ Coupling<br>5. Troubleshooting<br>เมื่อมี Warning เช่น BLEED FAULT, OVERHEAT หรือ LOW PRESSURE ให้ตรวจสอบตาม Fault Isolation/TSM เพื่อหาสาเหตุ ไม่ควรเปลี่ยน Component โดยไม่ยืนยันสาเหตุ<br>
+  </div>
+</div>
+	
+<!-- WHEEL -->
+<div class="page" id="page-wheel">
+  <div class="sub-hero">
+    <div class="crt-frame large" style="max-width:22rem;">
+      <img src="Photo/wheel.png" alt="WHEEL system diagram" />
+	  <button class="chapter-btn2" onclick="window.location.href='WEB/wheel_ecam.html'"><strong>ระบบจำลองหน้าจอ ECAM(WHEEL)</strong></button>
+    </div>
+    <div>
+      <h2 class="sub-title"><span class="code">ATA 32</span> — Landing Gear System (WHEEL)</h2>
+      <div class="tag-row">
+        <span class="tag">MAIN GEAR</span>
+        <span class="tag">NOSE GEAR</span>
+        <span class="tag">BRAKES</span>
+        <span class="tag">TIRE PRESSURE</span>
+      </div>
+      <p class="sub-desc">
+        ATA 32 = Landing Gear เป็นระบบที่เกี่ยวข้องกับการรองรับน้ำหนักเครื่องบินขณะอยู่บนพื้น การขึ้น–ลงของ Landing Gear การบังคับเลี้ยวล้อหน้า การเบรก และระบบแสดงสถานะของ Landing Gear<br>
+		1.ความหมายของ Landing Gear System Landing Gear System คือ ระบบที่ทำหน้าที่รองรับน้ำหนักของอากาศยานขณะอยู่บนพื้น และช่วยให้เครื่องบินสามารถ Takeoff,Landing,Taxi,Braking,Steering,Ground Handling<br>
+		2.หน้าที่หลักของระบบ<br>2.1 รองรับน้ำหนักเครื่องบิน Landing Gear รับน้ำหนักของ Aircraft ขณะอยู่บนพื้น รวมถึงแรงที่เกิดขึ้นขณะ Landing และ Taxi<br> 2.2 ดูดซับแรงกระแทก Landing Gear มี Shock Absorber / Shock Strut ช่วยดูดซับพลังงานจากการลงจอด<br> 2.3 เคลื่อนย้ายเครื่องบินบนพื้น<br>ล้อช่วยให้ Aircraft สามารถ Taxi,Pushback,Towing,Takeoff Roll,Landing Roll<br>2.4 Retract / Exten เครื่องบินหลายรุ่นสามารถเก็บ Landing Gear เข้าไปใน Wheel Well หลัง Takeoff และนำออกมาใช้งานก่อน Landing<br>2.5 Steering Nose Wheel Steering ช่วยควบคุมทิศทางของเครื่องบินขณะ Taxi<br>2.6 Braking Wheel Brake ใช้ลดความเร็วและหยุดเครื่องบินหลัง Landing หรือระหว่าง Taxi<br>
+		 
+      </p>
+	  <div id="more-text3" style="display: none;">
+      <p class="sub-desc">3. ส่วนประกอบหลักของ Landing Gear<br>3.1Main Landing Gearเป็น Landing Gear หลักที่รับน้ำหนักส่วนใหญ่ของ Aircraftโดยทั่วไปประกอบด้วยMain Gear Leg,Wheel,Tire,Brake,Axle,Shock Strut,Gear Door,Retraction/Extension Mechanism,Locking Mechanism<br>
+		  4. Nose Landing Gear<br>Nose Landing Gear อยู่บริเวณด้านหน้าของ Aircraft<br>หน้าที่หลักคือ:<br>รองรับส่วนหน้าของ Aircraft<br>ควบคุมทิศทางขณะ Taxi<br>ช่วยในการ Ground Handling<br>ส่วนประกอบอาจมี:<br>Nose Wheel<br>Nose Gear Strut<br>Steering Actuator<br>Torque Links<br>Shimmy Damper<br>Wheel<br>Tire<br>Steering Mechanism<br>
+		  5. Landing Gear Wheel<br>Wheel ทำหน้าที่รองรับและหมุนไปพร้อมกับ Tire Wheel Assembly ต้องสามารถรองรับ Aircraft Weight,Landing Loads,Braking Loads,Side Loads,Temperature จาก Braking,<br>
+		  6. Tire Tire เป็นส่วนที่สัมผัสกับ Runway หน้าที่คือ:รับน้ำหนัก,ส่งแรงจาก Aircraft ไปยังพื้น,รองรับแรงกระแทก,ช่วยในการ Braking,ช่วยในการ Taxi<br>
+		  7. Shock Strut Shock Strut ทำหน้าที่ดูดซับแรงกระแทกขณะ Landing โดยทั่วไปใช้หลักการของ Hydraulic Fluid + Gas เมื่อ Landing Gear รับแรง:Landing Impact → Shock Strut Compression → Hydraulic Fluid Movement → Energy Dissipation → ลดแรงที่ส่งเข้าสู่ Aircraft Structure<br>
+		  8. Torque Links Torque Links หรือบางครั้งเรียกว่า Torque Arms เชื่อมส่วนของ Shock Strut เข้าด้วยกัน หน้าที่สำคัญคือ:ควบคุมการหมุนของส่วนล่างของ Strut,รักษา Alignment ของ Wheel,ถ่ายทอดการเคลื่อนที่ที่เหมาะสมของ Landing Gear,<br>
+		  9. Shimmy Damper Shimmy คือการสั่นหรือแกว่งอย่างรวดเร็วของ Nose Wheel Shimmy Damper ช่วยลดการสั่นดังกล่าว หาก Shimmy Damper มีปัญหา อาจพบ Nose Wheel Vibration,Steering Instability,Abnormal Tire Wear<br>
+		  10. Landing Gear Retraction System หลังจาก Aircraft Takeoff แล้ว Landing Gear สามารถถูก Retract เข้าไปใน Wheel Well หลักการพื้นฐาน:Gear Down → Aircraft Takeoff → Gear Up Command → Retraction System ทำงาน → Gear เคลื่อนเข้าสู่ Wheel Well → UPLOCK:เมื่อ Landing Gear อยู่ในตำแหน่งเก็บ จะต้องมีระบบ Lock เพื่อป้องกัน Gear ตกลงมาเอง<br>
+		  11. Landing Gear Extension ก่อน Landing ระบบจะสั่ง Extend Landing Gear (Gear Up → Extend Command → Gear Unlock → Gear Moves Down → Downlock Engages → Gear Down &amp; Locked)<br>สิ่งสำคัญคือ Landing Gear ต้องอยู่ในสถานะ <strong>DOWN AND LOCKED</strong>ก่อน Landing<br>
+		  12. Landing Gear Locking System ระบบ Lock มีความสำคัญมาก<br>Uplock: ใช้ Lock Landing Gear ในตำแหน่ง UP<br> Downlock:ใช้ Lock Landing Gear ในตำแหน่ง DOWN<br>การ Lock ช่วยป้องกันการเคลื่อนที่ของ Landing Gear ที่ไม่ต้องการ<br>
+		  13. Landing Gear Doors:Aircraft บางรุ่นมี Landing Gear Doors หน้าที่คือ:<br>ปิด Wheel Well<br>ลด Aerodynamic Drag<br>ป้องกันสิ่งสกปรก<br>ป้องกัน Component ภายใน<br>
+		  14. Nose Wheel Steering<br>Nose Wheel Steering ใช้ควบคุมทิศทางของ Aircraft ขณะอยู่บนพื้น<br>หลักการ:<br>Pilot / Tiller Input<br>↓<br>Steering Control System<br>↓<br>Steering Actuator<br>↓<br>Nose Wheel Rotation<br>↓<br>Aircraft Changes Direction<br>ระบบอาจใช้:<br>Hydraulic Power<br>Electrical Control<br>Mechanical Linkage<br>
+		  15. Wheel Brake System Wheel Brake ใช้ลดความเร็วและหยุด Aircraft หลักการพื้นฐาน:Brake Command → Brake Control → Hydraulic Pressure → Brake Actuator → Brake Friction → Wheel Speed ลดลง → Aircraft Decelerates<br>
+		  16. Anti-Skid System<br>Anti-Skid ช่วยป้องกันไม่ให้ Wheel Lock ขณะ Braking:ระบบจะตรวจสอบ Wheel Speed แล้วควบคุม Brake Pressure<br>หากพบว่า Wheel กำลังจะ Lock:Wheel Speed ลดผิดปกติ → Anti-Skid Detects → Brake Pressure ลดลง → Wheel กลับมาหมุน → Brake Pressure เพิ่มกลับตามความเหมาะสม:ทำให้สามารถรักษาประสิทธิภาพการ Braking และช่วยลด Tire Skid<br>
+		  17. Landing Gear Indication:นักบินต้องสามารถทราบตำแหน่งของ Landing Gear ได้<br>ระบบจะแสดงสถานะ เช่น<br>GEAR UP<br>GEAR DOWN<br>GEAR IN TRANSIT<br>GEAR NOT LOCKED<br>อาจมี:<br>Indicator Light<br>Position Sensor<br>Proximity Sensor<br>ECAM/EICAS<br>Warning System<br>
+		  18. การเฝ้าระวังและเตือน (Monitoring & Warning)<br>ระบบ Landing Gear จะตรวจสอบสถานะของ Gear อย่างต่อเนื่อง<br>สิ่งที่เฝ้าระวัง<br>1. Gear Position:ตรวจว่า Gear อยู่<br>UP<br>DOWN<br>TRANSIT<br>2. Lock Status:ตรวจว่า<br>Uplock<br>Downlock<br>ทำงานหรือไม่<br>3. Wheel Speedใช้สำหรับ Anti-Skid และ Brake Monitoring<br>4. Brake Temperatureตรวจสอบอุณหภูมิของ Brake<br>5. Hydraulic Pressure ตรวจสอบแรงดัน Hydraulic ที่ใช้กับ Landing Gear/Brake ตามระบบของ Aircraft<br>6. Tire/Wheel Conditionในระบบและ Maintenance จะมีการตรวจสอบสภาพ Wheel/Tire<br>
+		  
+		  
+		  
+		  </p>
+      </div>
+<button class="chapter-btn" onclick="toggleContent3()"><strong>อ่านเพิ่มเติม</strong></button>
+	<p class="sub-desc2"><strong>การเรียนรู้ด้วยเสียง 🔊</strong></p>
+     <audio controls class="ad">
+     <source src="song/ATA Chapter 32.wav" type="audio/mpeg">
+       เบราว์เซอร์ของคุณไม่รองรับการเล่นเสียง
+     </audio>
+  </div>
+	  </div>
+<button class="chapter-btn3" onclick="window.location.href='quiz/quiz_3_wheel.html'"><strong>แบบทดสอบการเรียนรู้ระบบจำลองหน้าจอ ECAM ECAM(BLEED)</strong></button>
+  <div class="section-title">เนื้อหาที่ควรเรียนรู้</div>
+  <div class="content-grid">
+    <div class="content-card"><h4>โครงสร้างขาล้อและหน้าที่หลัก</h4>
+      <p>Nose landing gear, Main landing gear, Shock absorber (oleo strut)<br>
+		<strong>หน้าที่หลัก</strong><br>รองรับเครื่องบิน → ดูดซับแรง → เคลื่อนที่บนพื้น → Extend/Retract → Steering → Braking<br>
+		</p>
+      
+    </div>
+    <div class="content-card"><h4>ระบบเบรก</h4><p>Normal/Alternate brake, Autobrake, Anti-skid</p></div>
+    <div class="content-card"><h4>Extension/Retraction</h4><p>Normal system และ Gravity/Free-fall extension เมื่อระบบหลักขัดข้อง</p></div>
+    <div class="content-card"><h4>Failure & Backup เเละการเฝ้าระวังและเตือน</h4><p>ถ้า Normal System ขัดข้อง อาจใช้:Alternate Hydraulic → Mechanical/Electrical Backup → Gravity/Free-Fall → Emergency Extension<br>และระบบ Brake อาจมีNormal Brake → Alternate/Emergency Brake → Accumulator<br>🛠️ Maintenance<br>Inspect → Check Leakage → Check Tire/Wheel → Check Brake → Check Gear Lock → Functional Test → ตรวจ Indication<br>หลักการจำ ATA 32 = GEAR + WHEEL + BRAKE + STEERING<br>Gear ลงและ Lock ต้องปลอดภัย, Wheel/Tire ต้องสมบูรณ์, Brake ต้องหยุดเครื่องได้ และ Steering ต้องควบคุมทิศทางบนพื้นได้<br>Gear Position + Gear Lock + Wheel Speed + Brake Temperature + Hydraulic Pressure<br>ตัวอย่าง Warning:เช่น<br>GEAR NOT DOWN<br>GEAR NOT LOCKED<br>GEAR UNSAFE<br>BRAKE OVERHEAT<br><strong>Failure ที่พบบ่อย</strong><br>Gear ไม่ขึ้น/ไม่ลง<br>Gear ไม่ Lock<br>Hydraulic Leakage<br>Tire Wear/Damage<br>Wheel Bearing Failure<br>Brake Failure/Overheat<br>Anti-Skid Failure<br>Nose Wheel Steering Failure<br>Position Sensor Failure</p></div>
+  </div>
+
+  <div class="section-title">สรุป</div>
+  <div class="placeholder-box">
+    ATA 32 — Landing Gear System คือ ระบบที่ทำหน้าที่ รองรับน้ำหนักของอากาศยานขณะอยู่บนพื้น ช่วยในการขึ้น–ลงจอด การเคลื่อนที่และการหยุดเครื่องบิน โดยประกอบด้วย Landing Gear, Wheel, Tire, Brake, Nose Wheel Steering และระบบควบคุมการกาง–เก็บ Landing Gear ระบบนี้มีความสำคัญต่อความปลอดภัย โดยต้องสามารถ Extend, Retract และ Lock ได้อย่างถูกต้อง รวมถึงสามารถ Braking และ Steering เครื่องบินขณะอยู่บนพื้นได้อย่างมีประสิทธิภาพ
+  </div>
+</div>
+
+<script>
+  function goTo(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    document.getElementById('topbar-home-btn').classList.toggle('hidden', id === 'home');
+    window.location.hash = id;
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', () => {
+    const id = window.location.hash.replace('#', '') || 'home';
+    if (document.getElementById('page-' + id)) goTo(id);
+  });
+  window.addEventListener('DOMContentLoaded', () => {
+    const id = window.location.hash.replace('#', '');
+    if (id && document.getElementById('page-' + id)) goTo(id);
+  });
+</script>
+</body>
+</html>

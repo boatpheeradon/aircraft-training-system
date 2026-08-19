@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ATA Chapte Trainer</title>
+<link rel="icon" type="image/png" href="photo/Avionic.png">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<style>
+  :root {
+    --navy: #1B2A4A;
+    --navy-2: #223a63;
+    --gold: #C9A227;
+    --cream: #F7F4EC;
+    --paper: #FBF9F2;
+    --line: #ddd6c4;
+    --ink: #2a2620;
+    --muted: #8a8570;
+    --teal: #2E6F6E;
+    --red: #A63D40;
+  }
+  * { box-sizing: border-box; }
+  html, body { overflow-x: hidden; max-width: 100%; }
+  body {
+    margin: 0;
+    font-family: 'Work Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+  }
+  .hidden { display: none !important; }
+  h1, h2, .serif { text-align: center; font-family: 'Fraunces', serif; }
+
+  /* ---------- Auth layout ---------- */
+  #auth-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  @media (min-width: 860px) { #auth-screen { flex-direction: row; } }
+
+  .auth-hero {
+    display: flex;
+    width: 100%;
+    background: var(--navy);
+    color: var(--cream);
+    padding: 2rem 1.5rem;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  @media (min-width: 860px) {
+    .auth-hero { width: 42%; padding: 3.5rem 3rem; }
+  }
+  .auth-hero .brand { display: flex; flex-direction: column; align-items: center; text-align: center; gap: .5rem; color: var(--gold);
+    text-transform: uppercase; letter-spacing: .1em; font-size: .98rem; margin-bottom: 2.5rem; }
+  .auth-hero h1 { font-size: 1.8rem; line-height: 1.25; margin: 0 0 1rem; }
+  .auth-hero p { color: #9fb0cc; max-width: 22rem; font-size: .9rem; }
+  @media (max-width: 859px) {
+    .auth-hero h1 { font-size: 1.3rem; }
+    .auth-hero .brand { font-size: .72rem; margin-bottom: 1.25rem; letter-spacing: .06em; }
+    .auth-hero .id-card { max-width: 22rem; margin: 0 auto; }
+    .auth-hero .hint { display: none; }
+  }
+
+  .auth-form-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2.5rem 1.5rem; }
+  @media (max-width: 480px) { .auth-form-wrap { padding: 2rem 1rem; } }
+  .auth-box { width: 100%; max-width: 26rem; }
+
+  .tabs { display: flex; background: #ECE6D6; border-radius: 999px; padding: 4px; margin-bottom: 1.75rem; }
+  .tabs button {
+    flex: 1; border: none; background: transparent; padding: .6rem; border-radius: 999px;
+    font-size: .875rem; cursor: pointer; color: #6b6456; font-family: inherit;
+  }
+  .tabs button.active { background: var(--navy); color: var(--cream); }
+
+  label.field { display: block; margin-bottom: 1rem; }
+  label.field .lbl { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: #6b6456; }
+  label.field input, label.field select {
+    width: 100%; margin-top: .35rem; padding: .65rem .8rem; border-radius: .5rem;
+    border: 1px solid var(--line); background: var(--paper); font-size: .9rem; font-family: inherit; color: var(--ink);
+  }
+  .password-wrap { position: relative; margin-top: .35rem; }
+  .password-wrap input { width: 100%; margin-top: 0; padding: .65rem 2.6rem .65rem .8rem; border-radius: .5rem;
+    border: 1px solid var(--line); background: var(--paper); font-size: .9rem; font-family: inherit; color: var(--ink); }
+  .toggle-pw {
+    position: absolute; right: .4rem; top: 50%; transform: translateY(-50%);
+    border: none; background: none; cursor: pointer; font-size: 1rem; padding: .35rem;
+    line-height: 1; color: #a39a80;
+  }
+  .toggle-pw:hover { color: var(--navy); }
+  .role-picker { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: 1.25rem; }
+  .role-picker button {
+    padding: .65rem; border-radius: .5rem; border: 1px solid var(--line); background: var(--paper);
+    font-size: .875rem; cursor: pointer; font-family: inherit; color: #6b6456;
+  }
+  .role-picker button.active { background: var(--navy); border-color: var(--navy); color: var(--cream); }
+
+  .btn-primary {
+    width: 100%; padding: .8rem; border: none; border-radius: .5rem; background: var(--navy);
+    color: var(--cream); font-size: .9rem; cursor: pointer; font-family: inherit;
+  }
+  .btn-primary:disabled { opacity: .6; cursor: default; }
+
+  .msg { font-size: .85rem; padding: .6rem .8rem; border-radius: .5rem; margin-bottom: 1rem; }
+  .msg.error { background: rgba(166,61,64,0.1); color: var(--red); }
+  .msg.ok { background: rgba(46,111,110,0.12); color: var(--teal); }
+  .hint { font-size: .75rem; color: #9a917a; text-align: center; margin-top: 1rem; }
+
+  /* ---------- ID card ---------- */
+  .id-card {
+    max-width: 95%; border-radius: 1rem; overflow: hidden;
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 60%, var(--navy) 100%);
+    box-shadow: 0 20px 40px rgba(0,0,0,.25);
+  }
+  .id-card .top { padding: 1rem 1.25rem 0; display: flex; justify-content: space-between; align-items: center; }
+  .id-card .brand-mini { display: flex; gap: .4rem; align-items: center; color: var(--gold); font-size: .68rem; text-transform: uppercase; letter-spacing: .2em; }
+  .id-card .badge { font-size: .62rem; padding: .15rem .6rem; border-radius: 999px; text-transform: uppercase; letter-spacing: .05em; }
+  .id-card .badge.student { background: rgba(46,111,110,.25); color: #7fd1cf; border: 1px solid var(--teal); }
+  .id-card .badge.teacher { background: rgba(166,61,64,.25); color: #e58c8e; border: 1px solid var(--red); }
+  .id-card .body { padding: 1.25rem; display: flex; gap: 1rem; align-items: center; }
+  .id-card .avatar { width: 4rem; height: 4rem; border-radius: .75rem; flex-shrink: 0;
+    background: rgba(201,162,39,.15); border: 1px solid rgba(201,162,39,.4);
+    display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--gold); overflow: hidden; }
+  .id-card .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .id-card .name { font-size: 1.1rem; color: var(--cream); margin: 0; }
+  .id-card .sub { font-size: .75rem; color: #9fb0cc; margin: .15rem 0 0; }
+  .id-card .foot { padding: .5rem 1.25rem; background: rgba(0,0,0,.2); display: flex; justify-content: space-between;
+    font-size: .62rem; color: #7c8bab; }
+
+  /* ---------- Dashboard ---------- */
+  #dash-screen { min-height: 100vh; }
+  .topbar { background: var(--navy); color: var(--cream); padding: 1rem 2rem;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .6rem; }
+  .topbar .brand { display: flex; align-items: center; gap: .5rem; color: var(--gold);
+    text-transform: uppercase; letter-spacing: 0rem; font-size: .95rem; }
+  .topbar .actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+  .pill-btn { border: none; border-radius: 999px; padding: .45rem .9rem; font-size: .82rem; cursor: pointer; font-family: inherit; }
+  .pill-btn.logout { background: rgba(247,244,236,.1); color: var(--cream); }
+  @media (max-width: 480px) {
+    .topbar { padding: .75rem 1rem; }
+    .topbar .brand { font-size: .72rem; letter-spacing: .1em; }
+    .pill-btn { font-size: .74rem; padding: .4rem .75rem; }
+  }
+
+  .dash-wrap { max-width: 62rem; margin: 0 auto; padding: 2.5rem 2rem; display: grid; gap: 2rem;
+    grid-template-columns: 1fr; }
+  @media (min-width: 800px) { .dash-wrap { grid-template-columns: 20rem 1fr; } }
+  @media (max-width: 480px) { .dash-wrap { padding: 1.5rem 1rem; gap: 1.5rem; } }
+
+  .avg-card { margin-top: 1.5rem; border-radius: 1rem; padding: 1.25rem; border: 1px solid var(--line); background: var(--paper); }
+  .avg-card .lbl { font-size: .72rem; text-transform: uppercase; color: #6b6456; letter-spacing: .06em; }
+  .avg-card .num { font-size: 2.4rem; font-family: 'Fraunces', serif; margin: .1rem 0; }
+
+  .search-box { display: flex; align-items: center; gap: .5rem; border: 1px solid var(--line);
+    background: var(--paper); border-radius: .5rem; padding: .6rem .8rem; margin-bottom: 1.25rem; }
+  .search-box input { border: none; background: transparent; outline: none; width: 100%; font-family: inherit; font-size: .9rem; }
+
+  .student-card { border: 1px solid var(--line); background: var(--paper); border-radius: .8rem; padding: 1rem; margin-bottom: .75rem; }
+  .student-card .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: .75rem; }
+  .student-card .head-left { display: flex; align-items: center; gap: .75rem; }
+  .student-thumb { width: 2.5rem; height: 2.5rem; border-radius: .6rem; flex-shrink: 0; overflow: hidden;
+    background: #F1ECDD; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: #a39a80; }
+  .student-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .student-card .name { font-size: .9rem; font-weight: 500; }
+  .student-card .meta { font-size: .75rem; color: #9a917a; }
+  .grade-chip { text-align: center; padding: .35rem .75rem; border-radius: .5rem; }
+  .grade-chip .g-num { font-size: 1.1rem; font-family: 'Fraunces', serif; line-height: 1; }
+  .grade-chip .g-lbl { font-size: .6rem; text-transform: uppercase; }
+  .subject-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .5rem; }
+  @media (min-width: 500px) { .subject-grid { grid-template-columns: repeat(4, 1fr); } }
+  .subject-cell { background: #F1ECDD; border-radius: .5rem; padding: .5rem .6rem; }
+  .subject-cell .s-name { font-size: .62rem; color: #8a8570; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .subject-cell input { width: 100%; border: none; background: transparent; font-family: inherit; font-size: .85rem;
+    color: var(--navy); padding: 0; margin-top: .1rem; }
+
+  .subject-card { display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--line);
+    background: var(--paper); border-radius: .8rem; padding: 1rem; margin-bottom: .75rem; }
+  .subject-card .left { display: flex; align-items: center; gap: .75rem; }
+  .subject-card .icon { width: 2.25rem; height: 2.25rem; border-radius: .5rem; display: flex; align-items: center; justify-content: center; }
+  .subject-card .s-title { font-size: .875rem; }
+  .subject-card .s-grade { font-size: .68rem; color: #9a917a; }
+  .subject-card .score { font-size: 1.5rem; font-family: 'Fraunces', serif; }
+
+  .save-row { display: flex; justify-content: flex-end; margin-top: .5rem; }
+  .save-row button { border: none; background: var(--teal); color: white; padding: .45rem 1rem;
+    border-radius: .5rem; font-size: .8rem; cursor: pointer; font-family: inherit; }
+
+  #loading-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: .75rem; color: #6b6456; }
+
+  /* ---------- Quiz attempt history ---------- */
+  .attempt-card {
+    border: 1px solid var(--line); background: var(--paper); border-radius: .7rem;
+    padding: .8rem 1rem; margin-bottom: .6rem; font-size: .82rem;
+  }
+  .attempt-card .a-top { display: flex; justify-content: space-between; align-items: center; gap: .5rem; flex-wrap: wrap; }
+  .attempt-card .a-subject { font-weight: 600; color: var(--navy); }
+  .attempt-card .a-score { font-family: 'Fraunces', serif; font-size: 1.1rem; }
+  .attempt-card .a-meta { color: #9a917a; font-size: .74rem; margin-top: .3rem; }
+  .attempt-card .a-badge {
+    font-size: .68rem; padding: .1rem .55rem; border-radius: 999px;
+    background: rgba(46,111,110,.12); color: var(--teal);
+  }
+  .empty-note { color: #9a917a; font-size: .85rem; padding: .5rem 0; }
+  .history-toggle {
+    border: none; background: none; color: var(--teal); font-size: .78rem;
+    cursor: pointer; font-family: inherit; padding: 0; margin-top: .5rem; text-decoration: none;
+  }
+  .history-panel { margin-top: .6rem; display: none; }
+  .history-panel.show { display: block; }
+</style>
+</head>
+<body>
+
+<div id="loading-screen">
+  <div>กำลังเชื่อมต่อ Supabase...</div>
+</div>
+
+<!-- ============ AUTH SCREEN ============ -->
+<div id="auth-screen" class="hidden">
+  <div class="auth-hero">
+	<div>
+		<img src="photo/20210202-logoRMUTT-color-01.png"style="display: block; margin-left: auto; margin-right: auto; width: 25%;">
+		<br>
+      <div class="brand" ><strong>Rajamangala University of Technology Thanyaburi</strong><br><br><strong>Avionic Engineering</strong><br><br>
+		<strong>ELECTRONICS AND TELECOMMUNICATION ENGINEERING</strong><br><strong>FACULTY OF ENGINEERING</strong></div>
+      <h1 class="serif">ระบบสมาชิกนักศึกษาและอาจารย์</h1><br>
+    </div>
+    <div>
+      <div class="id-card" id="preview-card">
+        <div class="top">
+          <div class="brand-mini">🎓id-card</div>
+          <span class="badge student" id="preview-badge">นักศึกษา</span>
+        </div>
+        <div class="body">
+          <div class="avatar" id="preview-avatar">👤</div>
+          <div>
+            <p class="name serif" id="preview-name">ชื่อ-นามสกุล</p>
+            <p class="sub" id="preview-id">รหัส: --------------</p>
+            <p class="sub" id="preview-room">ห้อง: ------</p>
+          </div>
+        </div>
+        <div class="foot"><span>ID CARD</span><span>ISSUED 2569</span></div>
+      </div>
+      <p class="hint" style="text-align:left;color:#5f7196;margin-top:.75rem;">บัตรตัวอย่าง</p>
+    </div>
+  </div>
+
+  <div class="auth-form-wrap">
+	  <img src="photo/Avionic.png" style="position: absolute;top: 10px;right: 10px;width: 8%;margin: 0;"/>
+    <div class="auth-box">
+		<img src="photo/20210202-logoRMUTT-color-01.png" style="display: block; margin-left: auto; margin-right: auto; width: 25%;">
+		<br>
+      <div class="tabs">
+        <button id="tab-login" class="active">เข้าสู่ระบบ</button>
+        <button id="tab-register">สมัครสมาชิก</button>
+      </div>
+
+      <div id="auth-msg"></div>
+
+      <!-- LOGIN FORM -->
+      <form id="login-form">
+        <label class="field">
+          <span class="lbl">รหัสนักศึกษา / รหัสอาจารย์</span>
+          <input type="text" id="login-id" placeholder="เช่น 116730461XXX-X" required />
+        </label>
+        <label class="field">
+          <span class="lbl">รหัสผ่าน</span>
+          <div class="password-wrap">
+            <input type="password" id="login-password" placeholder="•••••••••••" required />
+            <button type="button" class="toggle-pw" data-target="login-password">👁️</button>
+          </div>
+        </label>
+        <button type="submit" class="btn-primary" id="login-btn">เข้าสู่ระบบ</button>
+      </form>
+
+      <!-- REGISTER FORM -->
+      <form id="register-form" class="hidden">
+        <label class="field">
+          <span class="lbl">ชื่อ-นามสกุล</span>
+          <input type="text" id="reg-name" placeholder="เช่น พีรดย์ ศรีสวัสดิ์" required />
+        </label>
+        <label class="field">
+          <span class="lbl">รูปนักศึกษา</span>
+          <input type="file" id="reg-photo" accept="image/*" />
+        </label>
+        <label class="field">
+          <span class="lbl">รหัสนักศึกษา / รหัสอาจารย์</span>
+          <input type="text" id="reg-id" placeholder="เช่น 116730461xxx-x" required />
+        </label>
+        <label class="field">
+          <span class="lbl">ห้อง</span>
+          <input type="text" id="reg-room" placeholder="เช่น ALE67346" required />
+        </label>
+        <label class="field">
+          <span class="lbl">เพศ</span>
+          <select id="reg-gender" required>
+            <option value="" disabled selected>เลือกเพศ</option>
+            <option value="male">ชาย</option>
+            <option value="female">หญิง</option>
+            <option value="other">ไม่ระบุ</option>
+          </select>
+        </label>
+        <label class="field">
+          <span class="lbl">รหัสผ่าน</span>
+          <div class="password-wrap">
+            <input type="password" id="reg-password" placeholder="อย่างน้อย 6 ตัวอักษร" minlength="6" required />
+            <button type="button" class="toggle-pw" data-target="reg-password">👁️</button>
+          </div>
+        </label>
+        <label class="field">
+          <span class="lbl">ยืนยันรหัสผ่าน</span>
+          <div class="password-wrap">
+            <input type="password" id="reg-password-confirm" placeholder="กรอกรหัสผ่านอีกครั้ง" minlength="6" required />
+            <button type="button" class="toggle-pw" data-target="reg-password-confirm">👁️</button>
+          </div>
+        </label>
+        <div>
+          <span class="lbl">สถานะ</span>
+          <div class="role-picker">
+            <button type="button" id="role-student" class="active" data-role="student">👨🏻‍🎓 นักศึกษา</button>
+            <button type="button" id="role-teacher" data-role="teacher">👨🏻‍🏫 อาจารย์</button>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" id="register-btn">สมัครสมาชิก</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============ DASHBOARD SCREEN ============ -->
+<div id="dash-screen" class="hidden">
+  <div class="topbar">
+    <div class="brand"><strong>🎓 DEVELOPMENT OF AN EDUCATIONAL WEB-BASED SYSTEM FOR AIRCRAFT SYSTEMS BASED ON AIR TRANSPORT ASSOCIATION STANDARDS</strong></div>
+    <div class="actions">
+      <button class="pill-btn" id="goto-trainer-btn" style="background:var(--gold);color:var(--navy);">📘 ไปหน้าเรียน (ATA Trainer)</button>
+      <button class="pill-btn logout" id="logout-btn">ออกจากระบบ</button>
+    </div>
+  </div>
+
+  <div class="dash-wrap">
+    <div>
+      <div class="id-card" id="my-card">
+        <div class="top">
+          <div class="brand-mini">🎓id-card</div>
+          <span class="badge" id="my-badge">นักศึกษา</span>
+        </div>
+        <div class="body">
+          <div class="avatar" id="my-avatar">👤</div>
+          <div>
+            <p class="name serif" id="my-name">-</p>
+            <p class="sub" id="my-id">รหัส: -</p>
+            <p class="sub" id="my-room">ห้อง: -</p>
+          </div>
+        </div>
+        <div class="foot"><span>ID CARD</span><span>ISSUED 2569</span></div>
+      </div>
+      <div class="avg-card hidden" id="avg-card">
+        <div class="lbl">🏅คะแนนรวมนักศึกษา</div>
+        <div class="num" id="avg-num">0</div>
+        <div class="lbl" id="avg-grade">เกรดโดยรวม: -</div>
+      </div>
+    </div>
+
+    <div>
+      <h2 class="serif" id="dash-title" style="margin:0 0 .2rem;color:var(--navy);">คะแนนรายวิชาของฉัน</h2>
+      <p style="margin:0 0 1.5rem;color:#8a8570;font-size:.9rem;" id="dash-sub">รายวิชาที่คุณลงทะเบียนในภาคเรียนนี้</p>
+
+      <!-- Teacher view -->
+      <div id="teacher-view" class="hidden">
+        <div class="search-box">
+          🔍 <input type="text" id="search-input" placeholder="ค้นหาชื่อ, รหัส หรือห้อง..." />
+        </div>
+        <div id="student-list"></div>
+      </div>
+
+      <!-- Student view -->
+      <div id="student-view" class="hidden">
+        <div id="subject-list"></div>
+        <h3 class="serif" style="margin:2rem 0 .75rem;color:var(--navy);font-size:1.1rem;">📝 ประวัติการทำข้อสอบ</h3>
+        <div id="attempt-history"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUBJECTS = ["ระบบไฮดรอลิก (HYD)", "ระบบลม/ปรับอากาศ (Bleed Air)", "ระบบล้อ/ขาตั้งลงจอด (Wheel)"];
+const SUBJECT_MAX = 20;                          // แต่ละวิชา/ข้อสอบเต็ม 20 คะแนน
+const TOTAL_MAX = SUBJECTS.length * SUBJECT_MAX; // รวมทั้งหมด 20+20+20 = 60 คะแนน
+const EMAIL_DOMAIN = "campus.local"; // ใช้แปลงรหัสนักศึกษาเป็นอีเมลปลอมสำหรับ Supabase Auth
+
+// ตัดเกรดจากสัดส่วนคะแนนที่ได้เทียบกับคะแนนเต็ม (ใช้ได้ทั้งรายวิชาเดี่ยว และคะแนนรวม)
+function gradeOf(score, total = 100) {
+  const pct = total > 0 ? (score / total) * 100 : 0;
+  if (pct >= 80) return { label: "A", tone: "#2E6F6E" };
+  if (pct >= 70) return { label: "B", tone: "#4C7A9C" };
+  if (pct >= 60) return { label: "C", tone: "#C9A227" };
+  if (pct >= 50) return { label: "D", tone: "#A63D40" };
+  return { label: "F", tone: "#8A2E32" };
+}
+function idToEmail(id) { return `${id.trim().toLowerCase()}@${EMAIL_DOMAIN}`; }
+
+let sb;
+let currentProfile = null;
+
+function showMsg(text, type) {
+  const el = document.getElementById("auth-msg");
+  el.innerHTML = text ? `<div class="msg ${type}">${text}</div>` : "";
+}
+
+// ---------- Init ----------
+window.addEventListener("DOMContentLoaded", async () => {
+  if (!window.supabase || typeof SUPABASE_URL === "undefined" || SUPABASE_URL.includes("YOUR-PROJECT-REF")) {
+    document.getElementById("loading-screen").innerHTML =
+      '<div style="max-width:26rem;text-align:center;padding:1rem;">⚠️ กรุณาตั้งค่า SUPABASE_URL และ SUPABASE_ANON_KEY ในไฟล์ config.js ก่อนใช้งาน (ดูวิธีใน README.md)</div>';
+    return;
+  }
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  wireAuthUI();
+  wireDashboardUI();
+
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    await loadProfileAndShowDashboard(session.user.id);
+  } else {
+    document.getElementById("loading-screen").classList.add("hidden");
+    document.getElementById("auth-screen").classList.remove("hidden");
+  }
+});
+
+// ---------- Auth tab switching ----------
+function wireAuthUI() {
+  const tabLogin = document.getElementById("tab-login");
+  const tabRegister = document.getElementById("tab-register");
+  const loginForm = document.getElementById("login-form");
+  const registerForm = document.getElementById("register-form");
+
+  tabLogin.onclick = () => {
+    tabLogin.classList.add("active"); tabRegister.classList.remove("active");
+    loginForm.classList.remove("hidden"); registerForm.classList.add("hidden");
+    showMsg("", "");
+  };
+  tabRegister.onclick = () => {
+    tabRegister.classList.add("active"); tabLogin.classList.remove("active");
+    registerForm.classList.remove("hidden"); loginForm.classList.add("hidden");
+    showMsg("", "");
+  };
+
+  // Show/hide password toggles
+  document.querySelectorAll(".toggle-pw").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const input = document.getElementById(btn.dataset.target);
+      const isHidden = input.type === "password";
+      input.type = isHidden ? "text" : "password";
+      btn.textContent = isHidden ? "❌" : "👁️";
+    });
+  });
+
+  // Role picker
+  const roleStudent = document.getElementById("role-student");
+  const roleTeacher = document.getElementById("role-teacher");
+  let selectedRole = "student";
+  function setRole(role) {
+    selectedRole = role;
+    roleStudent.classList.toggle("active", role === "student");
+    roleTeacher.classList.toggle("active", role === "teacher");
+    updatePreviewCard();
+  }
+  roleStudent.onclick = () => setRole("student");
+  roleTeacher.onclick = () => setRole("teacher");
+
+  // Live ID card preview
+  function updatePreviewCard() {
+    document.getElementById("preview-name").textContent = document.getElementById("reg-name").value || "ชื่อ-นามสกุล";
+    document.getElementById("preview-id").textContent = "รหัส: " + (document.getElementById("reg-id").value || "-------");
+    document.getElementById("preview-room").textContent = "ห้อง: " + (document.getElementById("reg-room").value || "-");
+    const badge = document.getElementById("preview-badge");
+    badge.textContent = selectedRole === "teacher" ? "อาจารย์" : "นักศึกษา";
+    badge.className = "badge " + selectedRole;
+  }
+  ["reg-name", "reg-id", "reg-room"].forEach((id) =>
+    document.getElementById(id).addEventListener("input", updatePreviewCard)
+  );
+
+  // Live photo preview
+  document.getElementById("reg-photo").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    const avatarEl = document.getElementById("preview-avatar");
+    if (!file) { avatarEl.innerHTML = "👤"; return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      avatarEl.innerHTML = `<img src="${ev.target.result}" alt="รูปนักศึกษา" />`;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // ---------- Login submit ----------
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    showMsg("", "");
+    const id = document.getElementById("login-id").value.trim();
+    const password = document.getElementById("login-password").value;
+    const btn = document.getElementById("login-btn");
+    btn.disabled = true; btn.textContent = "กำลังเข้าสู่ระบบ...";
+    const { data, error } = await sb.auth.signInWithPassword({ email: idToEmail(id), password });
+    btn.disabled = false; btn.textContent = "เข้าสู่ระบบ";
+    if (error) { showMsg("รหัสนักศึกษา/รหัสผ่านไม่ถูกต้อง", "error"); return; }
+    await loadProfileAndShowDashboard(data.user.id, { redirectStudentToTrainer: true });
+  });
+
+  // ---------- Register submit ----------
+  registerForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    showMsg("", "");
+    const name = document.getElementById("reg-name").value.trim();
+    const id = document.getElementById("reg-id").value.trim();
+    const room = document.getElementById("reg-room").value.trim();
+    const gender = document.getElementById("reg-gender").value;
+    const password = document.getElementById("reg-password").value;
+    const passwordConfirm = document.getElementById("reg-password-confirm").value;
+
+    if (!gender) {
+      showMsg("กรุณาเลือกเพศ", "error");
+      return;
+    }
+    if (password !== passwordConfirm) {
+      showMsg("รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน", "error");
+      return;
+    }
+
+    const btn = document.getElementById("register-btn");
+    btn.disabled = true; btn.textContent = "กำลังสมัคร...";
+
+    const { data, error } = await sb.auth.signUp({ email: idToEmail(id), password });
+    if (error) {
+      btn.disabled = false; btn.textContent = "สมัครสมาชิก";
+      showMsg(error.message.includes("already registered") ? "รหัสนี้ถูกใช้งานแล้ว กรุณาใช้รหัสอื่น" : "สมัครไม่สำเร็จ: " + error.message, "error");
+      return;
+    }
+    if (!data.session) {
+      btn.disabled = false; btn.textContent = "สมัครสมาชิก";
+      showMsg("สมัครไม่สำเร็จ: ระบบต้องการยืนยันอีเมล กรุณาปิด \"Confirm email\" ใน Supabase Auth settings ก่อน (ดู README)", "error");
+      return;
+    }
+
+    // อัปโหลดรูปนักศึกษา (ถ้ามี) ไปยัง Supabase Storage
+    let avatarUrl = null;
+    const photoFile = document.getElementById("reg-photo").files[0];
+    if (photoFile) {
+      const ext = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `${data.user.id}/${Date.now()}.${ext}`;
+      const { error: uploadError } = await sb.storage.from("avatars").upload(path, photoFile, { upsert: true });
+      if (uploadError) {
+        showMsg("สมัครสมาชิกสำเร็จ แต่อัปโหลดรูปไม่สำเร็จ: " + uploadError.message, "error");
+      } else {
+        const { data: urlData } = sb.storage.from("avatars").getPublicUrl(path);
+        avatarUrl = urlData.publicUrl;
+      }
+    }
+
+    const { error: profileError } = await sb.from("profiles").insert({
+      id: data.user.id, student_id: id, name, room, gender, role: selectedRole, avatar_url: avatarUrl,
+    });
+    btn.disabled = false; btn.textContent = "สมัครสมาชิก";
+    if (profileError) { showMsg("บันทึกโปรไฟล์ไม่สำเร็จ: " + profileError.message, "error"); return; }
+
+    showMsg("สมัครสมาชิกสำเร็จ! กำลังพาเข้าสู่ระบบ...", "ok");
+    await loadProfileAndShowDashboard(data.user.id, { redirectStudentToTrainer: true });
+  });
+}
+
+// ---------- Load profile + render dashboard ----------
+async function loadProfileAndShowDashboard(userId, opts = {}) {
+  const { redirectStudentToTrainer = false } = opts;
+  const { data: profile, error } = await sb.from("profiles").select("*").eq("id", userId).single();
+  document.getElementById("loading-screen").classList.add("hidden");
+  if (error || !profile) {
+    document.getElementById("auth-screen").classList.remove("hidden");
+    showMsg("ไม่พบโปรไฟล์ผู้ใช้ กรุณาลองเข้าสู่ระบบใหม่", "error");
+    await sb.auth.signOut();
+    return;
+  }
+  currentProfile = profile;
+
+  // นักศึกษาที่เพิ่งเข้าสู่ระบบ/สมัครสมาชิกเสร็จ ให้พาเข้าหน้าเรียนทันที (ไม่ต้องผ่านแดชบอร์ดก่อน)
+  if (redirectStudentToTrainer && profile.role === "student") {
+    window.location.href = "ata.html";
+    return;
+  }
+
+  document.getElementById("auth-screen").classList.add("hidden");
+  document.getElementById("dash-screen").classList.remove("hidden");
+  renderDashboard();
+}
+
+function wireDashboardUI() {
+  document.getElementById("goto-trainer-btn").onclick = () => {
+    window.location.href = "ata.html";
+  };
+  document.getElementById("logout-btn").onclick = async () => {
+    await sb.auth.signOut();
+    currentProfile = null;
+    document.getElementById("dash-screen").classList.add("hidden");
+    document.getElementById("auth-screen").classList.remove("hidden");
+    document.getElementById("login-form").reset();
+  };
+  document.getElementById("search-input").addEventListener("input", renderTeacherView);
+}
+
+async function renderDashboard() {
+  const isTeacher = currentProfile.role === "teacher";
+  document.getElementById("my-name").textContent = currentProfile.name;
+  document.getElementById("my-id").textContent = "รหัส: " + currentProfile.student_id;
+  document.getElementById("my-room").textContent = "ห้อง: " + currentProfile.room;
+  document.getElementById("my-avatar").innerHTML = currentProfile.avatar_url
+    ? `<img src="${currentProfile.avatar_url}" alt="${currentProfile.name}" />`
+    : "👤";
+  const badge = document.getElementById("my-badge");
+  badge.textContent = isTeacher ? "อาจารย์" : "นักศึกษา";
+  badge.className = "badge " + (isTeacher ? "teacher" : "student");
+
+  document.getElementById("dash-title").textContent = isTeacher ? "ภาพรวมคะแนนนักศึกษา" : "คะแนนรายวิชาของฉัน";
+  document.getElementById("dash-sub").textContent = isTeacher
+    ? "ค้นหา ตรวจสอบ และแก้ไขคะแนนของนักศึกษาทุกคนที่ลงทะเบียนในระบบ"
+    : "รายวิชาที่คุณลงทะเบียนในภาคเรียนนี้";
+
+  document.getElementById("teacher-view").classList.toggle("hidden", !isTeacher);
+  document.getElementById("student-view").classList.toggle("hidden", isTeacher);
+  document.getElementById("avg-card").classList.toggle("hidden", isTeacher);
+
+  if (isTeacher) {
+    await renderTeacherView();
+  } else {
+    await renderStudentView();
+  }
+}
+
+async function renderStudentView() {
+  const { data: scores } = await sb.from("scores").select("subject, score").eq("student_id", currentProfile.id);
+  const scoreMap = {};
+  (scores || []).forEach((s) => (scoreMap[s.subject] = s.score));
+
+  // รวมคะแนนแบบบวกตรงๆ (20+20+20 = 60) ไม่หารเฉลี่ย วิชาที่ยังไม่ได้ทำนับเป็น 0
+  const total = SUBJECTS.reduce((sum, subj) => sum + (scoreMap[subj] ?? 0), 0);
+  const g = gradeOf(total, TOTAL_MAX);
+  document.getElementById("avg-num").textContent = `${total} / ${TOTAL_MAX}`;
+  document.getElementById("avg-num").style.color = g.tone;
+  document.getElementById("avg-grade").textContent = "เกรดโดยรวม: " + g.label;
+
+  const listEl = document.getElementById("subject-list");
+  listEl.innerHTML = "";
+  SUBJECTS.forEach((subj) => {
+    const v = scoreMap[subj] ?? 0;
+    const gg = gradeOf(v, SUBJECT_MAX);
+    const div = document.createElement("div");
+    div.className = "subject-card";
+    div.innerHTML = `
+      <div class="left">
+        <div class="icon" style="background:${gg.tone}1A;color:${gg.tone};">📘</div>
+        <div>
+          <div class="s-title">${subj}</div>
+          <div class="s-grade">เกรด ${gg.label}</div>
+        </div>
+      </div>
+      <div class="score" style="color:${gg.tone};">${v} / ${SUBJECT_MAX}</div>`;
+    listEl.appendChild(div);
+  });
+
+  await renderAttemptHistory(currentProfile.id, document.getElementById("attempt-history"));
+}
+
+// ---------- ประวัติการทำข้อสอบ (ใช้ทั้งฝั่งนักศึกษาดูของตัวเอง และอาจารย์ดูของนักศึกษาแต่ละคน) ----------
+async function renderAttemptHistory(studentId, container) {
+  container.innerHTML = '<p class="empty-note">กำลังโหลดประวัติ...</p>';
+  const { data: attempts, error } = await sb
+    .from("quiz_attempts")
+    .select("*")
+    .eq("student_id", studentId)
+    .order("finished_at", { ascending: false });
+
+  if (error) {
+    container.innerHTML = `<p class="empty-note">โหลดประวัติไม่สำเร็จ: ${error.message}</p>`;
+    return;
+  }
+  if (!attempts || attempts.length === 0) {
+    container.innerHTML = '<p class="empty-note">ยังไม่มีประวัติการทำข้อสอบ</p>';
+    return;
+  }
+
+  container.innerHTML = "";
+  attempts.forEach((a) => {
+    const g = gradeOf(a.score, a.total);
+    const card = document.createElement("div");
+    card.className = "attempt-card";
+    card.innerHTML = `
+      <div class="a-top">
+        <div>
+          <div class="a-subject">${a.subject}</div>
+          <div class="a-meta">
+            เริ่มทำ ${formatThaiDT(a.started_at)} · ทำเสร็จ ${formatThaiDT(a.finished_at)}
+            &nbsp;·&nbsp; <span class="a-badge">ทำครั้งที่ ${a.attempt_no}</span>
+          </div>
+        </div>
+        <div class="a-score" style="color:${g.tone};">${a.score} / ${a.total}</div>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+// รูปแบบวันที่/เวลาแบบไทย เช่น 12.00 18/08/2569 (ปี พ.ศ.)
+function formatThaiDT(isoString) {
+  const d = new Date(isoString);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${pad(d.getHours())}.${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear() + 543}`;
+}
+
+let allStudents = [];
+let allScores = {};
+
+async function renderTeacherView() {
+  const [{ data: students }, { data: scores }] = await Promise.all([
+    sb.from("profiles").select("*").eq("role", "student"),
+    sb.from("scores").select("student_id, subject, score"),
+  ]);
+  allStudents = students || [];
+  allScores = {};
+  (scores || []).forEach((s) => {
+    allScores[s.student_id] = allScores[s.student_id] || {};
+    allScores[s.student_id][s.subject] = s.score;
+  });
+  drawTeacherList();
+}
+
+function drawTeacherList() {
+  const search = document.getElementById("search-input").value.trim().toLowerCase();
+  const listEl = document.getElementById("student-list");
+  listEl.innerHTML = "";
+
+  const filtered = allStudents.filter(
+    (s) =>
+      !search ||
+      s.name.toLowerCase().includes(search) ||
+      s.student_id.toLowerCase().includes(search) ||
+      s.room.toLowerCase().includes(search)
+  );
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = '<p style="color:#9a917a;font-size:.9rem;">ไม่พบนักศึกษาที่ตรงกับคำค้นหา</p>';
+    return;
+  }
+
+  filtered.forEach((st) => {
+    const sScores = allScores[st.id] || {};
+    // รวมคะแนนแบบบวกตรงๆ (20+20+20 = 60) ไม่หารเฉลี่ย วิชาที่ยังไม่ได้ทำนับเป็น 0
+    const total = SUBJECTS.reduce((sum, subj) => sum + (sScores[subj] ?? 0), 0);
+    const g = gradeOf(total, TOTAL_MAX);
+
+    const card = document.createElement("div");
+    card.className = "student-card";
+    card.innerHTML = `
+      <div class="head">
+        <div class="head-left">
+          <div class="student-thumb">${st.avatar_url ? `<img src="${st.avatar_url}" alt="${st.name}" />` : "👤"}</div>
+          <div>
+            <div class="name">${st.name}</div>
+            <div class="meta">รหัส ${st.student_id} · ห้อง ${st.room}</div>
+          </div>
+        </div>
+        <div class="grade-chip" style="background:${g.tone}1A;">
+          <div class="g-num" style="color:${g.tone};">${total}/${TOTAL_MAX}</div>
+          <div class="g-lbl" style="color:${g.tone};">เกรด ${g.label}</div>
+        </div>
+      </div>
+      <div class="subject-grid">
+        ${SUBJECTS.map(
+          (subj) => `
+          <div class="subject-cell">
+            <div class="s-name">${subj}</div>
+            <input type="number" min="0" max="${SUBJECT_MAX}" value="${sScores[subj] ?? ""}"
+              data-student="${st.id}" data-subject="${subj}" class="score-input" />
+          </div>`
+        ).join("")}
+      </div>
+      <div class="save-row" style="justify-content:space-between;">
+        <button type="button" class="history-toggle" data-history="${st.id}">📝 ดูประวัติการทำข้อสอบ</button>
+        <button data-save="${st.id}">💾 บันทึกคะแนน</button>
+      </div>
+      <div class="history-panel" id="history-${st.id}"></div>`;
+    listEl.appendChild(card);
+
+    card.querySelector(`[data-save="${st.id}"]`).addEventListener("click", () => saveScoresFor(st.id, card));
+    card.querySelector(`[data-history="${st.id}"]`).addEventListener("click", async (e) => {
+      const panel = document.getElementById(`history-${st.id}`);
+      const willShow = !panel.classList.contains("show");
+      panel.classList.toggle("show", willShow);
+      e.target.textContent = willShow ? "⛔ซ่อนประวัติการทำข้อสอบ" : "📝 ดูประวัติการทำข้อสอบ";
+      if (willShow && !panel.dataset.loaded) {
+        panel.dataset.loaded = "1";
+        await renderAttemptHistory(st.id, panel);
+      }
+    });
+  });
+}
+
+async function saveScoresFor(studentId, card) {
+  const inputs = card.querySelectorAll(`.score-input[data-student="${studentId}"]`);
+  const rows = [];
+  inputs.forEach((inp) => {
+    const val = inp.value === "" ? null : Number(inp.value);
+    if (val !== null && !Number.isNaN(val)) {
+      rows.push({ student_id: studentId, subject: inp.dataset.subject, score: val });
+    }
+  });
+  if (rows.length === 0) return;
+  const btn = card.querySelector(`[data-save="${studentId}"]`);
+  btn.disabled = true; btn.textContent = "กำลังบันทึก...";
+  const { error } = await sb.from("scores").upsert(rows, { onConflict: "student_id,subject" });
+  btn.disabled = false; btn.textContent = "💾 บันทึกคะแนน";
+  if (error) { alert("บันทึกไม่สำเร็จ: " + error.message); return; }
+  await renderTeacherView();
+}
+</script>
+</body>
+</html>

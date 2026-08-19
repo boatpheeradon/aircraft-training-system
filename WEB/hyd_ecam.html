@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>A320 HYD — Full FCOM Simulation</title>
+<style>	
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:#0d0d0d;
+  display:flex;flex-direction:column;align-items:center;
+  min-height:100vh;padding:14px 8px 36px;
+  font-family:'Share Tech Mono',monospace;
+  gap:8px;user-select:none;
+}
+
+/* ═══ ENGINE MASTER PANEL ═══ */
+.eng-row{
+  width:900px;
+  background:linear-gradient(180deg,#20242c,#181b22);
+  border:1.5px solid #2a2e38;border-radius:4px;
+  padding:10px 22px;display:flex;align-items:center;
+  box-shadow:0 2px 16px rgba(0,0,0,.8);
+}
+.eng-block{flex:1;display:flex;align-items:center;gap:14px;}
+.eng-block.right{justify-content:flex-end;}
+.eng-mid{flex:0 0 160px;text-align:center;font-size:8px;letter-spacing:4px;color:#2a3040;font-family:'Orbitron',monospace;}
+.eng-name{font-size:10px;letter-spacing:3px;color:#667;text-align:center;margin-bottom:4px;}
+
+/* Rocker/toggle switch */
+.sw-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.sw-lbl{font-size:7px;color:#445;letter-spacing:2px;}
+.sw-body{
+  width:34px;height:62px;
+  background:#090c11;border:2px solid #1e2530;border-radius:3px;
+  position:relative;cursor:pointer;
+  box-shadow:inset 0 3px 8px rgba(0,0,0,.9);
+}
+.sw-body:hover{border-color:#334;}
+.sw-knob{
+  position:absolute;left:2px;right:2px;height:26px;border-radius:2px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:7px;font-weight:bold;letter-spacing:1px;
+  transition:top .22s cubic-bezier(.4,0,.2,1),background .2s;
+  box-shadow:0 2px 6px rgba(0,0,0,.7);
+}
+.kp-off{top:2px;} .kp-on{top:32px;}
+.sw-pos{font-size:6.5px;color:#2a3040;letter-spacing:1px;position:absolute;width:100%;text-align:center;}
+.sp-top{top:4px;} .sp-bot{bottom:4px;}
+
+/* N gauges */
+.gauges{display:flex;flex-direction:column;gap:4px;min-width:105px;}
+.grow{display:flex;align-items:center;gap:4px;}
+.gname{font-size:7.5px;color:#334;width:14px;}
+.gtrack{flex:1;height:6px;background:#07090d;border-radius:1px;border:1px solid #141820;overflow:hidden;}
+.gfill{height:100%;border-radius:1px;transition:width .12s,background .2s;}
+.gnum{font-size:8.5px;font-weight:bold;width:38px;text-align:right;transition:color .2s;}
+.ephase{font-size:7.5px;letter-spacing:2px;text-align:center;margin-top:3px;padding:1px 6px;border-radius:2px;transition:color .2s;}
+
+/* ═══ OVERHEAD CANVAS ═══ */
+#ohC{display:block;cursor:pointer;border-radius:3px;}
+
+/* ═══ ECAM ═══ */
+.ecam-wrap{
+  position:relative;width:900px;
+  border:3px solid #080808;border-radius:5px;overflow:hidden;
+  box-shadow:0 0 60px rgba(0,150,50,.04),0 0 120px rgba(0,0,0,.95);
+}
+.ecam-wrap::after{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:6;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.04) 3px,rgba(0,0,0,.04) 4px);
+}
+.ecam-top{height:34px;background:#010704;border-bottom:1px solid #091409;display:flex;align-items:center;justify-content:center;}
+.etitle{font-family:'Orbitron',monospace;font-size:15px;font-weight:700;color:#eee;letter-spacing:7px;text-decoration:underline;text-underline-offset:4px;}
+.ecam-warn{
+  position:absolute;top:36px;left:6px;right:6px;z-index:7;
+  color:#ff5500;font-size:9px;letter-spacing:2px;text-align:center;padding:2px;
+  border:1px solid rgba(200,40,0,.25);background:rgba(180,30,0,.08);
+  pointer-events:none;transition:opacity .3s;
+}
+@keyframes blk{0%,100%{opacity:1}50%{opacity:.2}} .ecam-warn{animation:blk .9s infinite;}
+#ec{display:block;}
+.ecam-bot{height:46px;background:#010704;border-top:1px solid #091409;display:flex;align-items:center;padding:0 16px;gap:18px;}
+.fb{display:flex;gap:4px;align-items:baseline;}
+.fl{color:#2a3530;font-size:10px;} .fv{color:#00ff88;font-size:11px;font-weight:bold;} .fu{color:#1a2520;font-size:9px;}
+.fclk{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);color:#00ff88;font-size:11px;letter-spacing:4px;}
+
+/* Tooltip */
+.tip{position:fixed;background:rgba(1,5,2,.97);border:1px solid rgba(0,220,80,.18);color:#aaa;padding:9px 12px;font-size:10px;pointer-events:none;z-index:999;max-width:290px;line-height:1.75;box-shadow:0 0 14px rgba(0,255,80,.06);opacity:0;transition:opacity .08s;border-radius:3px;}
+.tip.show{opacity:1;}
+.tip b{color:#00ff88;display:block;margin-bottom:3px;font-size:10.5px;}
+@keyframes rpl{to{width:38px;height:38px;opacity:0}}
+
+/* FCOM info panel */
+.fcom-strip{
+  width:900px;background:#0a0c10;border:1px solid #1a2030;border-radius:3px;
+  padding:6px 14px;display:flex;gap:20px;flex-wrap:wrap;
+  font-size:9px;color:#334;letter-spacing:1px;
+}
+.fcom-item{display:flex;gap:6px;align-items:center;}
+.fcom-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+</style>
+</head>
+<body>
+	
+<!-- ENGINE MASTERS -->
+<div class="eng-row">
+  <div class="eng-block" id="eb1">
+    <div class="sw-wrap">
+      <div class="sw-lbl">MASTER SW</div>
+      <div class="sw-body" id="sw1" onclick="toggleEng(1)">
+        <div class="sw-pos sp-top">OFF</div>
+        <div class="sw-knob kp-off" id="k1">OFF</div>
+        <div class="sw-pos sp-bot">ON</div>
+      </div>
+    </div>
+    <div>
+      <div class="eng-name">ENGINE 1</div>
+      <div class="gauges">
+        <div class="grow"><span class="gname">N1</span><div class="gtrack"><div class="gfill" id="n1b1" style="width:0"></div></div><span class="gnum" id="n1v1">0.0%</span></div>
+        <div class="grow"><span class="gname">N2</span><div class="gtrack"><div class="gfill" id="n2b1" style="width:0"></div></div><span class="gnum" id="n2v1">0.0%</span></div>
+        <div class="grow"><span class="gname">EGT</span><div class="gtrack"><div class="gfill" id="egtb1" style="width:0;background:#883300"></div></div><span class="gnum" id="egtv1" style="color:#554">0°C</span></div>
+      </div>
+      <div class="ephase" id="ep1">OFF</div>
+    </div>
+  </div>
+
+  <div class="eng-mid">ENGINE<br>MASTER</div>
+
+  <div class="eng-block right">
+    <div>
+      <div class="eng-name">ENGINE 2</div>
+      <div class="gauges">
+        <div class="grow"><span class="gnum" id="n1v2" style="text-align:left">0.0%</span><div class="gtrack"><div class="gfill" id="n1b2" style="width:0"></div></div><span class="gname" style="text-align:right">N1</span></div>
+        <div class="grow"><span class="gnum" id="n2v2" style="text-align:left">0.0%</span><div class="gtrack"><div class="gfill" id="n2b2" style="width:0"></div></div><span class="gname" style="text-align:right">N2</span></div>
+        <div class="grow"><span class="gnum" id="egtv2" style="color:#554;text-align:left">0°C</span><div class="gtrack"><div class="gfill" id="egtb2" style="width:0;background:#883300"></div></div><span class="gname" style="text-align:right">EGT</span></div>
+      </div>
+      <div class="ephase" id="ep2">OFF</div>
+    </div>
+    <div class="sw-wrap">
+      <div class="sw-lbl">MASTER SW</div>
+      <div class="sw-body" id="sw2" onclick="toggleEng(2)">
+        <div class="sw-pos sp-top">OFF</div>
+        <div class="sw-knob kp-off" id="k2">OFF</div>
+        <div class="sw-pos sp-bot">ON</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OVERHEAD PANEL -->
+<canvas id="ohC" width="900" height="178"></canvas>
+
+<!-- ECAM DISPLAY -->
+<div class="ecam-wrap">
+  <div class="ecam-top"><span class="etitle">HYD</span></div>
+  <div class="ecam-warn" id="ecW" style="opacity:0"></div>
+  <canvas id="ec" width="900" height="520"></canvas>
+  <div class="ecam-bot">
+    <div class="fb"><span class="fl">TAT</span><span class="fv">+15</span><span class="fu">°C</span></div>
+    <div class="fb"><span class="fl">SAT</span><span class="fv">+15</span><span class="fu">°C</span></div>
+    <div class="fclk" id="clk">-- H --</div>
+    <div style="flex:1"></div>
+    <div class="fb"><span class="fl">GW</span><span class="fv" id="gwv">--</span><span class="fu">KG</span></div>
+  </div>
+</div>
+
+<!-- FCOM reference strip -->
+<div class="fcom-strip">
+  <div class="fcom-item"><div class="fcom-dot" style="background:#00ff88"></div>GREEN: ENG1 EDP · Brakes · Nose steer · LG · Flt ctrl</div>
+  <div class="fcom-item"><div class="fcom-dot" style="background:#33ccff"></div>BLUE: Elec pump · RAT · Flt ctrl · Emergency gen</div>
+  <div class="fcom-item"><div class="fcom-dot" style="background:#ffe033"></div>YELLOW: ENG2 EDP + Elec pump · Flaps/Slats · Alt brake · Cargo</div>
+  <div class="fcom-item"><div class="fcom-dot" style="background:#ffaa22"></div>Cargo Door: Powered by an electric pump (normal) · Hand pump (manual backup)</div>
+  <div class="fcom-item"><div class="fcom-dot" style="background:#888"></div>PTU: Auto when ΔP&gt;500PSI · Power only, no fluid transfer · Inhibit: ENG1 start</div>
+</div>
+
+<div class="tip" id="tip"></div>
+
+<script>
+'use strict';
+/* ═══════════════════════════════════════════════════
+   A320 FCOM-accurate constants
+═══════════════════════════════════════════════════ */
+const IDLE_N1 = 23.4;
+const IDLE_N2 = 58.3;
+const IDLE_EGT = 430;   // °C at idle
+const START_EGT_PEAK = 640; // light-off peak
+const START_DUR = 6000; // ms  (real ~40s, compressed for sim)
+const SHUT_DUR  = 5000;
+const PTU_DP_THRESHOLD = 500; // PSI differential to activate PTU
+const EDP_MIN_N2 = 15;  // % N2 for EDP to start producing pressure
+const ELEC_MIN_N2 = 20; // % N2 on any engine for BLUE elec pump to run
+
+/* ═══════════════════════════════════════════════════
+   ENGINE MODEL
+═══════════════════════════════════════════════════ */
+const ENG = {
+  1:{phase:'off',n1:0,n2:0,egt:15,tmr:null, startInhibit:false},
+  2:{phase:'off',n1:0,n2:0,egt:15,tmr:null, startInhibit:false}
+};
+
+// FCOM: PTU inhibited during ENG 1 start (to avoid fluid flow reversal)
+// FCOM: BLUE elec pump inhibited during ENG 2 start (normal procedure)
+function ptuInhibited(){
+  return ENG[1].phase==='starting';
+}
+function blueElecInhibited(){
+  // FCOM: BLUE elec pump cuts out briefly during ENG 2 start self-test
+  return false; // simplified — always available when any engine running
+}
+
+function toggleEng(n){
+  const e=ENG[n];
+  if(e.phase==='off'||e.phase==='shutdown') startEng(n);
+  else shutEng(n);
+}
+
+function startEng(n){
+  const e=ENG[n];
+  e.phase='starting';
+  if(e.tmr)clearInterval(e.tmr);
+  const t0=Date.now();
+  e.tmr=setInterval(()=>{
+    const p=Math.min((Date.now()-t0)/START_DUR,1);
+    // N2: rises first (starter motor → air turbine starter)
+    const n2p=easeOut(Math.min(p*1.2,1));
+    // N1: follows N2 after ~20% N2 (engine self-sustaining ~15%)
+    const n1p=easeOut(Math.max(0,Math.min((p-.2)*1.35,1)));
+    e.n2=n2p*IDLE_N2;
+    e.n1=n1p*IDLE_N1;
+    // EGT: spikes at light-off (~20% N2) then settles at idle
+    const lop=Math.max(0,(p-.15))/.15; // light-off progress
+    const settle=Math.max(0,(p-.3))/.7;
+    e.egt = p<.15 ? 15+p/.15*80 :
+            p<.30 ? 95+(lop*(START_EGT_PEAK-95)) :
+            START_EGT_PEAK-(settle*(START_EGT_PEAK-IDLE_EGT));
+    if(p>=1){e.n1=IDLE_N1;e.n2=IDLE_N2;e.egt=IDLE_EGT;e.phase='running';clearInterval(e.tmr);}
+    updEngUI(n);recalc();
+  },50);
+}
+
+function shutEng(n){
+  const e=ENG[n];
+  e.phase='shutdown';
+  if(e.tmr)clearInterval(e.tmr);
+  const sn1=e.n1,sn2=e.n2,sEgt=e.egt,t0=Date.now();
+  e.tmr=setInterval(()=>{
+    const p=Math.min((Date.now()-t0)/SHUT_DUR,1);
+    e.n2=sn2*(1-easeIn(p));
+    e.n1=sn1*(1-easeIn(p*1.1)); // N1 decays slightly faster
+    e.egt=sEgt*(1-easeIn(p*.7)); // EGT decays slowly
+    if(p>=1){e.n1=0;e.n2=0;e.egt=15;e.phase='off';clearInterval(e.tmr);}
+    updEngUI(n);recalc();
+  },50);
+}
+
+const easeOut=t=>1-Math.pow(1-t,2.2);
+const easeIn =t=>Math.pow(t,1.8);
+
+function updEngUI(n){
+  const e=ENG[n];
+  const k=document.getElementById('k'+n);
+  const ep=document.getElementById('ep'+n);
+  const n1b=document.getElementById('n1b'+n),n2b=document.getElementById('n2b'+n),egtb=document.getElementById('egtb'+n);
+  const n1v=document.getElementById('n1v'+n),n2v=document.getElementById('n2v'+n),egtv=document.getElementById('egtv'+n);
+  const trans=e.phase==='starting'||e.phase==='shutdown';
+  const run=e.phase==='running';
+
+  // Knob
+  k.className='sw-knob '+(e.phase==='off'?'kp-off':'kp-on');
+  if(run){k.style.cssText='background:linear-gradient(150deg,#0a2010,#061409);color:#00ff88;border:1px solid #154a20;';k.textContent='ON';}
+  else if(e.phase==='starting'){k.style.cssText='background:linear-gradient(150deg,#241c00,#181200);color:#ffcc00;border:1px solid #554400;';k.textContent='↑';}
+  else if(e.phase==='shutdown'){k.style.cssText='background:linear-gradient(150deg,#241000,#180b00);color:#ff8800;border:1px solid #553300;';k.textContent='↓';}
+  else{k.style.cssText='background:linear-gradient(150deg,#181818,#101010);color:#3a3a3a;border:1px solid #202020;';k.textContent='OFF';}
+
+  // Phase label
+  const phCol=run?'#00ff88':trans?'#ffcc00':'#2a3040';
+  const phBg=run?'rgba(0,50,15,.3)':trans?'rgba(50,35,0,.3)':'transparent';
+  ep.textContent=run?'RUNNING':e.phase==='starting'?'STARTING…':e.phase==='shutdown'?'SHUTDOWN…':'OFF';
+  ep.style.color=phCol;ep.style.background=phBg;
+
+  // Bars
+  const barCol=run?'#00aa55':trans?'#aa7700':'#111';
+  const egtCol=e.egt>550?'#ff4400':e.egt>430?'#ffaa00':'#773300';
+  n1b.style.width=(e.n1/100*100)+'%';n1b.style.background=barCol;
+  n2b.style.width=(e.n2/100*100)+'%';n2b.style.background=run?'#008844':trans?'#885500':'#111';
+  egtb.style.width=(e.egt/800*100)+'%';egtb.style.background=egtCol;
+
+  const vc=run?'#00ff88':trans?'#ffcc00':'#2a3040';
+  n1v.textContent=e.n1.toFixed(1)+'%';n1v.style.color=vc;
+  n2v.textContent=e.n2.toFixed(1)+'%';n2v.style.color=vc;
+  egtv.textContent=Math.round(e.egt)+'°C';egtv.style.color=egtCol;
+}
+updEngUI(1);updEngUI(2);
+
+/* ═══════════════════════════════════════════════════
+   HYDRAULIC STATE  — A320 FCOM accurate
+═══════════════════════════════════════════════════ */
+const HYD={
+  G:{edpOn:true, fvOpen:true, pressure:0, qty:.72, loLvl:false},
+  B:{elecAuto:true, ratPowered:false, pressure:0, qty:.68, loLvl:false},
+  Y:{edpOn:true, fvOpen:true, elecOn:false, pressure:0, qty:.75, loLvl:false},
+  ptu:{auto:true, active:false, dir:'none', selfTest:false},
+  rat:{deployed:false},
+};
+// Overhead pb states (these are separate from logic outputs)
+const OVH={
+  g_pump:true,  // ENG1 PUMP pb: pb-in (normal) = AUTO
+  b_pump:true,  // BLUE ELEC PUMP pb: AUTO
+  ptu:true,     // PTU pb: AUTO
+  y_pump:true,  // ENG2 PUMP pb: AUTO
+  y_elec:false, // YELLOW ELEC PUMP: normally OFF
+  rat:false,    // RAT MAN: normally stowed
+};
+
+/* ═══════════════════════════════════════════════════
+   CARGO DOOR  —  fed from YELLOW system
+   FCOM: Powered by an electric pump (normal operation).
+   A manual hand pump provides backup power if the electric
+   pump / YELLOW system pressure is unavailable.
+═══════════════════════════════════════════════════ */
+const CARGO_MIN_PSI = 1500;      // min YELLOW pressure for powered operation
+const CARGO_HAND_STROKES = 10;   // strokes needed for full travel by hand
+const CARGO = {
+  pos: 0,        // 0 = closed, 1 = fully open
+  target: 0,     // commanded position
+  poweredMoving: false,
+  tmr: null,
+};
+
+function cargoElecAvail(){ return HYD.Y.pressure >= CARGO_MIN_PSI; }
+
+function toggleCargoDoor(){
+  CARGO.target = CARGO.target===0 ? 1 : 0;
+  if(cargoElecAvail()){
+    startCargoPowered();
+  }
+  // If no electric power, nothing moves until HAND PUMP is worked —
+  // matches real procedure (crew must use the hand pump backup).
+}
+
+function startCargoPowered(){
+  if(CARGO.tmr) clearInterval(CARGO.tmr);
+  CARGO.poweredMoving=true;
+  const DUR=4000; // ~4s powered travel
+  const startPos=CARGO.pos, dir=CARGO.target-CARGO.pos;
+  const t0=Date.now();
+  CARGO.tmr=setInterval(()=>{
+    if(!cargoElecAvail()){ // power lost mid-travel — stop, needs hand pump to finish
+      clearInterval(CARGO.tmr); CARGO.tmr=null; CARGO.poweredMoving=false; return;
+    }
+    const p=Math.min((Date.now()-t0)/DUR,1);
+    CARGO.pos=startPos+dir*p;
+    if(p>=1){CARGO.pos=CARGO.target;clearInterval(CARGO.tmr);CARGO.tmr=null;CARGO.poweredMoving=false;}
+  },40);
+}
+
+function pumpHandPump(ev){
+  if(CARGO.pos===CARGO.target) return; // door already where commanded
+  if(cargoElecAvail()){
+    // Electric power is available — hand pump not required, but a
+    // stroke here does no harm (powered system does the real work)
+    return;
+  }
+  const dir=CARGO.target>CARGO.pos?1:-1;
+  CARGO.pos=Math.max(0,Math.min(1, CARGO.pos + dir*(1/CARGO_HAND_STROKES)));
+  splash(ev);
+}
+
+function recalc(){
+  const e1=ENG[1], e2=ENG[2];
+
+  // ── GREEN EDP ──
+  // FCOM: EDP runs whenever engine runs AND fire valve open AND pump pb AUTO
+  // Pressure proportional to N2 above EDP_MIN_N2
+  const gEdpRunning = OVH.g_pump && HYD.G.fvOpen && e1.n2>=EDP_MIN_N2;
+  const gPsiRaw = gEdpRunning ? Math.min(((e1.n2-EDP_MIN_N2)/(IDLE_N2-EDP_MIN_N2))*3100, 3000) : 0;
+  HYD.G.pressure = Math.round(gPsiRaw);
+
+  // ── YELLOW EDP + ELEC PUMP ──
+  const yEdpRunning = OVH.y_pump && HYD.Y.fvOpen && e2.n2>=EDP_MIN_N2;
+  const yEdpPsi = yEdpRunning ? Math.min(((e2.n2-EDP_MIN_N2)/(IDLE_N2-EDP_MIN_N2))*3100, 3000) : 0;
+  // YELLOW elec pump: ground ops, always 3000 when on
+  const yElecPsi = OVH.y_elec ? 3000 : 0;
+  HYD.Y.pressure = Math.round(Math.max(yEdpPsi, yElecPsi));
+
+  // ── BLUE ELEC PUMP ──
+  // FCOM: AUTO = runs when any engine N2 > 20% (or on ground with external power)
+  const anyEngAboveThresh = e1.n2>=ELEC_MIN_N2 || e2.n2>=ELEC_MIN_N2;
+  const bElecRunning = OVH.b_pump && anyEngAboveThresh && !HYD.rat.deployed;
+  // Blue pump pressure also proportional to supply speed but regulated to 3000
+  const bElecPsi = bElecRunning ? Math.min(Math.max(e1.n2,e2.n2)/IDLE_N2*3100, 3000) : 0;
+  // RAT: provides 2500 PSI to BLUE when deployed
+  const bRatPsi = HYD.rat.deployed ? 2500 : 0;
+  HYD.B.pressure = Math.round(Math.max(bElecPsi, bRatPsi));
+
+  // ── PTU (Power Transfer Unit) ──
+  // FCOM: AUTO mode → activates when |G-Y| > 500 PSI
+  // Inhibited: during ENG1 start, cargo door ops
+  // Self-test: runs automatically during ENG2 start (brief pressure fluctuation)
+  HYD.ptu.active=false;HYD.ptu.dir='none';
+  const ptuInhib = ptuInhibited() || !OVH.ptu;
+  if(!ptuInhib && OVH.ptu){
+    const dp = HYD.G.pressure - HYD.Y.pressure;
+    if(Math.abs(dp) > PTU_DP_THRESHOLD){
+      HYD.ptu.active=true;
+      if(dp<0 && HYD.Y.pressure>0){
+        // YELLOW → GREEN: PTU driven by YELLOW, provides ~93% of Y pressure to G
+        HYD.ptu.dir='Y→G';
+        HYD.G.pressure=Math.round(Math.min(HYD.Y.pressure*.93,2900));
+      } else if(dp>0 && HYD.G.pressure>0){
+        // GREEN → YELLOW
+        HYD.ptu.dir='G→Y';
+        HYD.Y.pressure=Math.round(Math.min(HYD.G.pressure*.93,2900));
+      }
+    }
+    // PTU self-test during ENG2 start
+    if(e2.phase==='starting' && e2.n2>20 && e2.n2<35){
+      HYD.ptu.selfTest=true;
+    } else HYD.ptu.selfTest=false;
+  }
+
+  // ── Build warnings (ECAM SD messages) ──
+  const W=[];
+  if(HYD.G.pressure<1500 && (gEdpRunning||HYD.ptu.active)) W.push('HYD G SYS LO PR');
+  if(HYD.B.pressure<1500 && (bElecRunning||HYD.rat.deployed)) W.push('HYD B SYS LO PR');
+  if(HYD.Y.pressure<1500 && (yEdpRunning||OVH.y_elec)) W.push('HYD Y SYS LO PR');
+  if(!HYD.G.fvOpen) W.push('HYD G ENG1 FIRE VALVE CLSD');
+  if(!HYD.Y.fvOpen) W.push('HYD Y ENG2 FIRE VALVE CLSD');
+  if(HYD.rat.deployed) W.push('HYD RAT DEPLOYED');
+  if(e1.phase==='starting') W.push('ENG 1 START');
+  if(e2.phase==='starting') W.push('ENG 2 START');
+  if(HYD.ptu.selfTest) W.push('PTU SELF TEST');
+
+  const el=document.getElementById('ecW');
+  if(W.length){el.textContent='⚠  '+W.join('   ·   ')+'  ⚠';el.style.opacity='1';}
+  else el.style.opacity='0';
+
+  // GW shows when at least one engine running
+  document.getElementById('gwv').textContent=
+    (e1.phase==='running'||e2.phase==='running')? '59700':'--';
+}
+recalc();
+
+/* ═══════════════════════════════════════════════════
+   OVERHEAD PANEL CANVAS
+═══════════════════════════════════════════════════ */
+const ohC=document.getElementById('ohC');
+const ohX=ohC.getContext('2d');
+const OW=ohC.width,OH=ohC.height;
+const ohZ=[];
+
+// Real A320 overhead positions (matched to photos)
+const PB={
+  g_pump:{x:158,y:103,w:52,h:46,lbl:'ENG 1\nPUMP',id:'g_pump'},
+  rat:   {x:280,y:88, w:52,h:68,lbl:'RAT\nMAN ON',id:'rat'},
+  b_elec:{x:398,y:88, w:52,h:68,lbl:'ELEC\nPUMP',id:'b_elec'},
+  ptu:   {x:508,y:103,w:52,h:46,lbl:'PTU',id:'ptu'},
+  y_pump:{x:622,y:103,w:52,h:46,lbl:'ENG 2\nPUMP',id:'y_pump'},
+  y_elec:{x:736,y:103,w:52,h:46,lbl:'ELEC\nPUMP',id:'y_elec'},
+};
+const BD='#c4b470'; // beige border color (real A320)
+
+function drawOH(){
+  const o=ohX;
+  o.clearRect(0,0,OW,OH);
+  // Panel surface
+  const bg=o.createLinearGradient(0,0,0,OH);
+  bg.addColorStop(0,'#4c5868');bg.addColorStop(1,'#3a4755');
+  o.fillStyle=bg;o.fillRect(0,0,OW,OH);
+  // Subtle horizontal lines (panel texture)
+  o.strokeStyle='rgba(0,0,0,.08)';o.lineWidth=1;
+  for(let y=0;y<OH;y+=4){o.beginPath();o.moveTo(0,y);o.lineTo(OW,y);o.stroke();}
+
+  // Corner rivets
+  [[16,14],[OW-16,14],[16,OH-14],[OW-16,OH-14]].forEach(([x,y])=>{
+    o.fillStyle='#2a3545';o.beginPath();o.arc(x,y,5,0,Math.PI*2);o.fill();
+    o.strokeStyle='#192030';o.lineWidth=1;o.stroke();
+    o.strokeStyle='#5a6878';o.lineWidth=.5;
+    o.beginPath();o.moveTo(x-3,y);o.lineTo(x+3,y);o.stroke();
+    o.beginPath();o.moveTo(x,y-3);o.lineTo(x,y+3);o.stroke();
+  });
+
+  // HYD labels
+  o.fillStyle='#ccd';o.font='bold 11px Share Tech Mono';
+  ['H','Y','D'].forEach((c,i)=>{o.textAlign='center';o.fillText(c,26,46+i*17);});
+  ['H','Y','D'].forEach((c,i)=>{o.textAlign='center';o.fillText(c,OW-26,46+i*17);});
+
+  // System name boxes at top
+  const e1t=ENG[1].phase==='starting'||ENG[1].phase==='shutdown';
+  const e2t=ENG[2].phase==='starting'||ENG[2].phase==='shutdown';
+  const gWire=ENG[1].phase==='running'?'#00dd77':e1t?'#ffcc00':'#336644';
+  const bWire=(ENG[1].phase==='running'||ENG[2].phase==='running')?'#22aacc':(e1t||e2t)?'#bb9900':'#224455';
+  const yWire=ENG[2].phase==='running'?'#ffcc00':e2t?'#ff9900':'#664400';
+
+  drawSysBox(o,158,'GREEN',gWire);
+  drawSysBox(o,408,'BLUE',bWire);
+  drawSysBox(o,660,'YELLOW',yWire);
+  drawWires(o,gWire,bWire,yWire);
+
+  // All pushbuttons
+  drawPB_std(o,PB.g_pump, getInd_gPump());
+  drawRAT(o);
+  drawBElecPB(o);
+  drawPB_std(o,PB.ptu,    getInd_ptu());
+  drawPB_std(o,PB.y_pump, getInd_yPump());
+  drawPB_std(o,PB.y_elec, getInd_yElec());
+
+  // Rebuild click zones
+  ohZ.length=0;
+  Object.values(PB).forEach(pb=>{
+    ohZ.push({
+      x:pb.x-pb.w/2, y:pb.y-(pb.id==='rat'||pb.id==='b_elec'?4:4),
+      w:pb.w, h:pb.h, id:pb.id
+    });
+  });
+}
+
+function drawSysBox(o,x,lbl,col){
+  const w=lbl==='YELLOW'?62:lbl==='BLUE'?46:52,h=18;
+  o.strokeStyle=col;o.lineWidth=1.5;o.strokeRect(x-w/2,7,w,h);
+  o.fillStyle=col;o.font='bold 10px Share Tech Mono';o.textAlign='center';o.fillText(lbl,x,20);
+}
+
+function drawWires(o,gC,bC,yC){
+  o.lineWidth=1.6;o.setLineDash([]);
+  const W2=OW;
+  // GREEN: left edge → ENG1 pump → toward RAT
+  wire(o,gC,28,16,130,16); ah(o,30,16,'left',gC); ah(o,128,16,'right',gC);
+  wire(o,gC,158,26,158,82); ah(o,158,27,'up',gC);
+  wire(o,gC,184,16,253,16); ah(o,251,16,'right',gC);
+  // BLUE: RAT → BLUE label → PTU
+  wire(o,bC,306,16,378,16); ah(o,376,16,'right',bC);
+  wire(o,bC,408,26,408,68); ah(o,408,27,'up',bC);
+  wire(o,bC,438,16,482,16); ah(o,440,16,'left',bC);
+  // PTU bridge
+  const pC=OVH.ptu?'#3a6a3a':'#1a2520';
+  wire(o,pC,482,16,534,16); ah(o,532,16,'right',pC);
+  // YELLOW: PTU → ENG2 pump → ELEC pump → right edge
+  wire(o,yC,534,16,636,16); ah(o,536,16,'right',yC);
+  wire(o,yC,622,26,622,82); ah(o,660,27,'up',yC);
+  wire(o,yC,648,16,736,16);
+  wire(o,yC,736,26,736,82);
+  wire(o,yC,762,16,W2-28,16); ah(o,W2-30,16,'right',yC);
+}
+function wire(o,col,x1,y1,x2,y2){o.strokeStyle=col;o.beginPath();o.moveTo(x1,y1);o.lineTo(x2,y2);o.stroke();}
+function ah(o,x,y,d,c){
+  o.fillStyle=c;const s=4.5;o.beginPath();
+  if(d==='right'){o.moveTo(x+s,y);o.lineTo(x-s*.7,y-s*.7);o.lineTo(x-s*.7,y+s*.7);}
+  if(d==='left') {o.moveTo(x-s,y);o.lineTo(x+s*.7,y-s*.7);o.lineTo(x+s*.7,y+s*.7);}
+  if(d==='up')   {o.moveTo(x,y-s);o.lineTo(x+s*.7,y+s*.6);o.lineTo(x-s*.7,y+s*.6);}
+  o.closePath();o.fill();
+}
+
+/* Standard pushbutton */
+function drawPB_std(o,pb,ind){
+  const {x,y,w,h,lbl}=pb;
+  // Beige border
+  o.fillStyle=BD;o.fillRect(x-w/2-2,y-2,w+4,h+4);
+  // Body gradient
+  const bg=o.createLinearGradient(x-w/2,y,x-w/2,y+h);
+  bg.addColorStop(0,'#16202c');bg.addColorStop(1,'#0c141e');
+  o.fillStyle=bg;o.fillRect(x-w/2,y,w,h);
+  // Inner shadow
+  o.strokeStyle='rgba(0,0,0,.55)';o.lineWidth=1;
+  o.strokeRect(x-w/2+1,y+1,w-2,h-2);
+  // Label
+  o.fillStyle='#8899aa';o.font='7px Share Tech Mono';o.textAlign='center';
+  lbl.split('\n').forEach((l,i)=>o.fillText(l,x,y+10+i*9));
+  // Indicator
+  drawInd(o,x,y+h-15,w-6,14,ind);
+}
+
+/* RAT — big red guarded handle with protective mesh cover */
+function drawRAT(o){
+  const pb=PB.rat;const {x,y,w,h}=pb;
+  o.fillStyle=BD;o.fillRect(x-w/2-2,y-2,w+4,h+4);
+  if(OVH.rat){
+    // Deployed = dark
+    o.fillStyle='#141414';o.fillRect(x-w/2,y,w,h);
+    o.fillStyle='#446699';o.font='bold 7.5px Share Tech Mono';o.textAlign='center';
+    o.fillText('RAT',x,y+30);o.fillText('OUT',x,y+42);
+  } else {
+    // Stowed = RED with protective mesh guard (matches ELEC PUMP guard style)
+    const rg=o.createLinearGradient(x-w/2,y,x+w/2,y+h);
+    rg.addColorStop(0,'#c01010');rg.addColorStop(.45,'#e01818');rg.addColorStop(1,'#901010');
+    o.fillStyle=rg;o.fillRect(x-w/2,y,w,h);
+    // Fine mesh/grid guard overlay (real aircraft: wire mesh protective cover)
+    o.strokeStyle='rgba(0,0,0,.32)';o.lineWidth=.9;
+    const mgx=x-w/2+3,mgy=y+3,mgw=w-6,mgh=h-6;
+    for(let ci=0;ci<=6;ci++){o.beginPath();o.moveTo(mgx+ci*mgw/6,mgy);o.lineTo(mgx+ci*mgw/6,mgy+mgh);o.stroke();}
+    for(let ri=0;ri<=8;ri++){o.beginPath();o.moveTo(mgx,mgy+ri*mgh/8);o.lineTo(mgx+mgw,mgy+ri*mgh/8);o.stroke();}
+    // Highlight
+    const hl=o.createLinearGradient(x-w/2,y,x+w/2,y+22);
+    hl.addColorStop(0,'rgba(255,150,150,.15)');hl.addColorStop(1,'rgba(0,0,0,0)');
+    o.fillStyle=hl;o.fillRect(x-w/2+2,y+2,w-4,22);
+    o.fillStyle='rgba(255,255,255,.9)';o.font='bold 8px Share Tech Mono';o.textAlign='center';
+    o.fillText('RAT',x,y+12);
+    o.fillStyle='rgba(255,255,255,.75)';o.font='6.5px Share Tech Mono';o.fillText('MAN ON',x,y+22);
+  }
+  o.fillStyle='#99aabc';o.font='6.5px Share Tech Mono';o.textAlign='center';
+  o.fillText('RAT MAN ON',x,y-5);
+  drawInd(o,x,y+h-13,44,12,OVH.rat?{t:'ON',c:'on'}:{t:'',c:'dark'});
+}
+
+/* BLUE ELEC PUMP — guard style (image 14) */
+function drawBElecPB(o){
+  const pb=PB.b_elec;const {x,y,w,h}=pb;
+  o.fillStyle=BD;o.fillRect(x-w/2-2,y-2,w+4,h+4);
+  // Guard section top (black with grid)
+  o.fillStyle='#10161e';o.fillRect(x-w/2,y,w,32);
+  // Grid lines matching real guard
+  o.strokeStyle='#252e3d';o.lineWidth=.8;
+  const gx=x-w/2+4,gy=y+4,gw=w-8,gh=25;
+  for(let ci=0;ci<=3;ci++){o.beginPath();o.moveTo(gx+ci*gw/3,gy);o.lineTo(gx+ci*gw/3,gy+gh);o.stroke();}
+  for(let ri=0;ri<=3;ri++){o.beginPath();o.moveTo(gx,gy+ri*gh/3);o.lineTo(gx+gw,gy+ri*gh/3);o.stroke();}
+  // Arrow inside guard (real aircraft has small arrow pointing up)
+  o.strokeStyle='#334455';o.lineWidth=1.5;
+  o.beginPath();o.moveTo(x,gy+4);o.lineTo(x,gy+gh-4);o.stroke();
+  o.beginPath();o.moveTo(x-4,gy+7);o.lineTo(x,gy+3);o.lineTo(x+4,gy+7);o.stroke();
+  // Button section below guard
+  const bg2=o.createLinearGradient(x-w/2,y+32,x-w/2,y+h);
+  bg2.addColorStop(0,'#16202c');bg2.addColorStop(1,'#0c141e');
+  o.fillStyle=bg2;o.fillRect(x-w/2,y+32,w,h-32);
+  o.fillStyle='#7788aa';o.font='7px Share Tech Mono';o.textAlign='center';
+  o.fillText('ELEC PUMP',x,y+46);
+  // AUTO text on right (vertical, matches real panel)
+  o.save();o.translate(x+w/2+9,y+h/2+8);o.rotate(Math.PI/2);
+  o.fillStyle='#5a6a7a';o.font='6.5px Share Tech Mono';o.textAlign='center';
+  o.fillText('A U T O',0,0);o.restore();
+
+  o.fillStyle='#99aabc';o.font='6.5px Share Tech Mono';o.textAlign='center';
+  o.fillText('ELEC PUMP',x,y-5);
+  drawInd(o,x,y+h-13,44,12,getInd_bElec());
+}
+
+/* Indicator light strip */
+function drawInd(o,cx,y,w,h,ind){
+  o.fillStyle='#04080e';o.fillRect(cx-w/2,y,w,h);
+  o.strokeStyle='#020510';o.lineWidth=1;o.strokeRect(cx-w/2,y,w,h);
+  if(!ind||ind.c==='dark'){o.fillStyle='#060810';o.fillRect(cx-w/2+1,y+1,w-2,h-2);return;}
+  const MAP={off:['#100000','#ff2222'],on:['#001508','#00ff55'],fault:['#150a00','#ffaa00'],auto:['#000e05','#00cc44'],amber:['#120c00','#ffcc00']};
+  const [bg,tc]=MAP[ind.c]||['#060810','#333'];
+  o.fillStyle=bg;o.fillRect(cx-w/2+1,y+1,w-2,h-2);
+  if(ind.t){o.fillStyle=tc;o.font='bold 7.5px Share Tech Mono';o.textAlign='center';o.fillText(ind.t,cx,y+h-2);}
+}
+
+/* Indicator state logic — FCOM accurate */
+function getInd_gPump(){
+  if(!OVH.g_pump)return{t:'OFF',c:'off'};
+  if(ENG[1].phase==='starting')return{t:'STRT',c:'amber'};
+  if(ENG[1].phase==='shutdown')return{t:'SHUT',c:'amber'};
+  if(ENG[1].phase==='off')return{t:'',c:'dark'}; // dark when engine off and pump pb AUTO (normal)
+  if(HYD.G.pressure<1500)return{t:'FAULT',c:'fault'};
+  return{t:'',c:'dark'};
+}
+function getInd_bElec(){
+  if(!OVH.b_pump)return{t:'OFF',c:'off'};
+  const trans=ENG[1].phase==='starting'||ENG[2].phase==='starting'||ENG[1].phase==='shutdown'||ENG[2].phase==='shutdown';
+  if(trans)return{t:'TRNS',c:'amber'};
+  if(HYD.B.pressure<1000 && (ENG[1].n2>ELEC_MIN_N2||ENG[2].n2>ELEC_MIN_N2))return{t:'FAULT',c:'fault'};
+  if(ENG[1].n2>=ELEC_MIN_N2||ENG[2].n2>=ELEC_MIN_N2)return{t:'AUTO',c:'auto'};
+  return{t:'',c:'dark'};
+}
+function getInd_ptu(){
+  if(!OVH.ptu)return{t:'OFF',c:'off'};
+  if(HYD.ptu.selfTest)return{t:'TEST',c:'amber'};
+  if(HYD.ptu.active)return{t:'ON',c:'on'};
+  return{t:'AUTO',c:'auto'};
+}
+function getInd_yPump(){
+  if(!OVH.y_pump)return{t:'OFF',c:'off'};
+  if(ENG[2].phase==='starting')return{t:'STRT',c:'amber'};
+  if(ENG[2].phase==='shutdown')return{t:'SHUT',c:'amber'};
+  if(ENG[2].phase==='off')return{t:'',c:'dark'};
+  if(HYD.Y.pressure<1500)return{t:'FAULT',c:'fault'};
+  return{t:'',c:'dark'};
+}
+function getInd_yElec(){return OVH.y_elec?{t:'ON',c:'on'}:{t:'OFF',c:'off'};}
+
+/* Overhead click handler */
+const tip=document.getElementById('tip');
+ohC.addEventListener('click',ev=>{
+  const r=ohC.getBoundingClientRect();
+  const sc=OW/r.width;
+  const mx=(ev.clientX-r.left)*sc,my=(ev.clientY-r.top)*sc;
+  const z=ohZ.find(z=>mx>=z.x&&mx<=z.x+z.w&&my>=z.y&&my<=z.y+z.h);
+  if(!z)return;
+  // FCOM logic for each button
+  switch(z.id){
+    case'g_pump':
+      OVH.g_pump=!OVH.g_pump;
+      break;
+    case'rat':
+      // Real: once deployed cannot be stowed in flight (simplified: allow toggle)
+      OVH.rat=!OVH.rat;
+      HYD.rat.deployed=OVH.rat;
+      if(OVH.rat && OVH.b_pump){OVH.b_pump=false;} // RAT takes over from elec pump
+      break;
+    case'b_elec':
+      OVH.b_pump=!OVH.b_pump;
+      break;
+    case'ptu':
+      OVH.ptu=!OVH.ptu;
+      break;
+    case'y_pump':
+      OVH.y_pump=!OVH.y_pump;
+      break;
+    case'y_elec':
+      OVH.y_elec=!OVH.y_elec;
+      break;
+  }
+  recalc();splash(ev.clientX,ev.clientY);
+});
+
+ohC.addEventListener('mousemove',ev=>{
+  const r=ohC.getBoundingClientRect();
+  const sc=OW/r.width;
+  const mx=(ev.clientX-r.left)*sc,my=(ev.clientY-r.top)*sc;
+  const z=ohZ.find(z=>mx>=z.x&&mx<=z.x+z.w&&my>=z.y&&my<=z.y+z.h);
+  if(z){
+    ohC.style.cursor='pointer';
+    const info=getTip(z.id);
+    tip.innerHTML=`<b>${info.t}</b>${info.d.replace(/\n/g,'<br>')}`;
+    tip.style.left=(ev.clientX+12)+'px';tip.style.top=(ev.clientY-6)+'px';tip.classList.add('show');
+  } else{ohC.style.cursor='default';tip.classList.remove('show');}
+});
+ohC.addEventListener('mouseleave',()=>tip.classList.remove('show'));
+
+function getTip(id){
+  const tips={
+    g_pump:{t:'ENG 1 PUMP (GREEN)',d:`Mode: ${OVH.g_pump?'AUTO — runs with ENG1':'OFF — pump deactivated'}\nENG 1: ${ENG[1].phase.toUpperCase()} · N2=${ENG[1].n2.toFixed(1)}%\n\nFCOM: EDP1 runs when ENG1 N2 ≥ 15%\nWhen OFF → only PTU can supply GREEN.\nPump pb-in = AUTO (normal position).`},
+    rat:{t:'RAT MAN ON (Ram Air Turbine)',d:`State: ${OVH.rat?'DEPLOYED 🌀':'STOWED 📦'}\n\nFCOM AUTO deploy:\n• Both AC buses lost AND airspeed > 100 kt\n• Provides 2500 PSI to BLUE system\n• Also powers EMER GEN (AC 50 Hz)\n• Replaces BLUE elec pump\n• Cannot be stowed in flight!`},
+    b_elec:{t:'ELEC PUMP — BLUE',d:`Mode: ${OVH.b_pump?'AUTO':'OFF'}\n\nFCOM: AUTO = runs when any ENG N2 ≥ 20%\nOnly pressure source for BLUE system\n(no engine-driven pump on BLUE).\nRAT overrides this pump when deployed.`},
+    ptu:{t:'PTU (Power Transfer Unit)',d:`Mode: ${OVH.ptu?'AUTO':'OFF'} · Transfer: ${HYD.ptu.dir}\n\nFCOM: Activates when |ΔP(G-Y)| > 500 PSI\nPower transfer only — NO fluid moves!\nInhibited during ENG1 start (N2 15-50%)\nSelf-test during ENG2 start (N2 20-35%)\nBoth systems remain separated.`},
+    y_pump:{t:'ENG 2 PUMP (YELLOW)',d:`Mode: ${OVH.y_pump?'AUTO':'OFF'}\nENG 2: ${ENG[2].phase.toUpperCase()} · N2=${ENG[2].n2.toFixed(1)}%\n\nFCOM: EDP2 runs when ENG2 N2 ≥ 15%\nPowered by ENG2 accessory gearbox.`},
+    y_elec:{t:'ELEC PUMP — YELLOW',d:`Mode: ${OVH.y_elec?'ON — RUNNING':'OFF (normal in flight)'}\n\nFCOM: Normally OFF in flight.\nUsed: cargo door ops, ground maintenance.\nWhen ON: pressurizes YELLOW to 3000 PSI.\nWith PTU AUTO: can also supply GREEN.\n\nCargo Door: Powered by an electric pump\n(normal ops). Manual hand pump available\nas backup if electric pump unavailable.`},
+  };
+  return tips[id]||{t:id,d:''};
+}
+
+function splash(px,py){
+  const d=document.createElement('div');
+  Object.assign(d.style,{position:'fixed',left:px+'px',top:py+'px',width:'0',height:'0',border:'2px solid #00ff88',borderRadius:'50%',pointerEvents:'none',zIndex:'500',transform:'translate(-50%,-50%)',animation:'rpl .3s ease-out forwards'});
+  document.body.appendChild(d);setTimeout(()=>d.remove(),350);
+}
+
+/* ═══════════════════════════════════════════════════
+   ECAM CANVAS — exact A320 ECAM layout from photos
+═══════════════════════════════════════════════════ */
+const ec=document.getElementById('ec');
+const cx=ec.getContext('2d');
+const EW=ec.width,EH=ec.height;
+const ecZ=[];
+function aez(x,y,w,h,info,action){ecZ.push({x:x-w/2,y:y-h/2,w,h,info,action});}
+
+// ECAM columns — matched to real photo proportions
+const COL={
+  G:{x:158,c:'#00ff88',d:'#0a281a'},
+  B:{x:450,c:'#33ccff',d:'#0a1e2a'},
+  Y:{x:742,c:'#ffe033',d:'#281e00'},
+};
+const CYAN='#22cccc'; // PSI label color in real ECAM
+const parts=[];
+
+function ecamCol(s){
+  const phase=s==='G'?ENG[1].phase:s==='Y'?ENG[2].phase:null;
+  const trans=phase==='starting'||phase==='shutdown';
+  if(trans)return s==='Y'?'#ffaa00':'#ccbb00';
+  return HYD[s].pressure>0?COL[s].c:COL[s].d;
+}
+
+function drawECAM(){
+  cx.clearRect(0,0,EW,EH);
+  cx.fillStyle='#010804';cx.fillRect(0,0,EW,EH);
+  ecZ.length=0;
+  ['G','B','Y'].forEach(drawCol_ecam);
+  drawPTU_ecam();
+  drawRAT_ecam();
+  drawElecLabel_ecam();
+  drawCargoDoor_ecam();
+  drawParticles_ecam();
+  drawEngBar_ecam();
+}
+
+function vl(x,y1,y2,col,lw=2.5){cx.strokeStyle=col;cx.lineWidth=lw;cx.beginPath();cx.moveTo(x,y1);cx.lineTo(x,y2);cx.stroke();}
+function hl(x1,y,x2,col,lw=2){cx.strokeStyle=col;cx.lineWidth=lw;cx.beginPath();cx.moveTo(x1,y);cx.lineTo(x2,y);cx.stroke();}
+function tri(x,y,d,col,sz=8,f=false){
+  cx.strokeStyle=col;cx.fillStyle=col;cx.lineWidth=1.8;cx.beginPath();
+  if(d==='up'){cx.moveTo(x,y-sz);cx.lineTo(x+sz*.76,y+sz*.5);cx.lineTo(x-sz*.76,y+sz*.5);}
+  if(d==='rt'){cx.moveTo(x+sz,y);cx.lineTo(x-sz*.58,y-sz*.65);cx.lineTo(x-sz*.58,y+sz*.65);}
+  if(d==='lt'){cx.moveTo(x-sz,y);cx.lineTo(x+sz*.58,y-sz*.65);cx.lineTo(x+sz*.58,y+sz*.65);}
+  cx.closePath();f?cx.fill():cx.stroke();
+}
+function fvEcam(x,y,open,col){
+  const s=13;
+  cx.strokeStyle=open?col:'#ff2020';cx.lineWidth=2.5;
+  cx.strokeRect(x-s/2,y-s/2,s,s);
+  if(open){cx.beginPath();cx.moveTo(x,y-s/2);cx.lineTo(x,y+s/2);cx.stroke();}
+  else{cx.beginPath();cx.moveTo(x-s/2+3,y-s/2+3);cx.lineTo(x+s/2-3,y+s/2-3);cx.stroke();
+       cx.beginPath();cx.moveTo(x+s/2-3,y-s/2+3);cx.lineTo(x-s/2+3,y+s/2-3);cx.stroke();}
+}
+function pumpEcam(x,y,on,col,trans){
+  const r=16,t=Date.now()*.0032;
+  const dc=trans?(HYD[col==='G'?'G':col==='Y'?'Y':'B'].pressure>0?'#ffcc00':'#554400'):col;
+  cx.strokeStyle=(on||trans)?dc:dc+'25';cx.lineWidth=2.5;
+  cx.beginPath();cx.arc(x,y,r,0,Math.PI*2);cx.stroke();
+  if(on||trans){
+    cx.strokeStyle=dc+'55';cx.lineWidth=1.5;
+    for(let i=0;i<4;i++){const a=t+i*Math.PI/2;cx.beginPath();cx.moveTo(x,y);cx.lineTo(x+Math.cos(a)*(r-4),y+Math.sin(a)*(r-4));cx.stroke();}
+  }
+}
+function rsvEcam(x,y1,y2,col,lvl){
+  const w=10,fh=(y2-y1)*lvl;
+  cx.strokeStyle=col;cx.lineWidth=1.8;cx.strokeRect(x-w/2,y1,w,y2-y1);
+  cx.fillStyle=col+'30';cx.fillRect(x-w/2+1,y2-fh+1,w-2,fh-2);
+  // Level line
+  cx.strokeStyle=col+'99';cx.lineWidth=1.2;
+  cx.beginPath();cx.moveTo(x-w/2-4,y2-fh);cx.lineTo(x+w/2+4,y2-fh);cx.stroke();
+  // Amber base (real ECAM: amber rectangle at bottom of reservoir)
+  cx.fillStyle='#cc8800';cx.fillRect(x-w/2,y2-7,w,6);
+  // Tick marks
+  cx.strokeStyle=col+'44';cx.lineWidth=1;
+  for(let i=1;i<3;i++){const ty=y1+(y2-y1)*i/3;cx.beginPath();cx.moveTo(x-w/2-3,ty);cx.lineTo(x-w/2,ty);cx.stroke();}
+}
+function psiEcam(x,y,val,baseCol,trans){
+  // FCOM: green = normal, amber = low/transitional, red = very low
+  const pc=trans?'#ffcc00':val>=2800?baseCol:val>1500?'#ffb300':'#ff2020';
+  cx.fillStyle=pc;cx.font='bold 20px Share Tech Mono';cx.textAlign='center';
+  cx.fillText(Math.round(val).toString(),x,y);
+}
+
+const SYSNAME={G:'GREEN',B:'BLUE',Y:'YELLOW'};
+
+function drawCol_ecam(s){
+  const {x,c,d}=COL[s];
+  const engN=s==='G'?1:s==='Y'?2:null;
+  const phase=engN?ENG[engN].phase:null;
+  const trans=phase==='starting'||phase==='shutdown';
+  const pres=HYD[s].pressure;
+  const on=pres>0;
+  const col=ecamCol(s);
+
+  // System triangle + name (green=on, dim=off, amber=transitional)
+  cx.fillStyle=col;cx.font='bold 13px Share Tech Mono';cx.textAlign='center';
+  cx.fillText(SYSNAME[s],x,50);
+  tri(x,27,'up',col,8,on||trans);
+  aez(x,38,120,28,{t:`${SYSNAME[s]} System`,d:`${Math.round(pres)} PSI · Qty ${Math.round(HYD[s].qty*100)}%\n${trans?'ENGINE '+phase.toUpperCase():on?'PRESSURIZED':'DEPRESSURIZED'}`});
+
+  // PSI value (real ECAM: value below system name)
+  psiEcam(x,78,pres,c,trans);
+  // PSI label in CYAN (matching real ECAM)
+  cx.fillStyle=CYAN;cx.font='10px Share Tech Mono';cx.textAlign='left';
+  if(s==='G')cx.fillText('PSI',x+30,78);
+  if(s==='B')cx.fillText('PSI',x+30,78);
+  aez(x,70,100,22,{t:`${SYSNAME[s]} Pressure`,d:`${Math.round(pres)} PSI\n${trans?'Transitional':''}${pres>=3000?'Normal':pres>1500?'Below normal':'LOW PRESSURE'}`});
+
+  vl(x,88,258,col);
+
+  // Fire valve — GREEN and YELLOW only
+  if(s==='G'||s==='Y'){
+    const fvOpen=s==='G'?HYD.G.fvOpen:HYD.Y.fvOpen;
+    fvEcam(x,266,fvOpen,col);
+    aez(x,266,30,28,{t:`${SYSNAME[s]} Fire Shutoff Valve`,d:`${fvOpen?'OPEN ✅':'CLOSED 🔴'}\nFCOM: Closes on ENG${s==='G'?'1':'2'} FIRE handle pull\nor ENG FIRE pb press.`});
+    vl(x,280,340,col);
+  }
+
+  // BLUE: ELEC PUMP symbol (square) above main pump
+  if(s==='B'){
+    const ep=OVH.b_pump&&(ENG[1].n2>=ELEC_MIN_N2||ENG[2].n2>=ELEC_MIN_N2);
+    const bTrans=ENG[1].phase==='starting'||ENG[2].phase==='starting'||ENG[1].phase==='shutdown'||ENG[2].phase==='shutdown';
+    const epc=ep?(bTrans?'#ffcc00':c):d;
+    cx.strokeStyle=epc;cx.lineWidth=2;cx.strokeRect(x-12,280,24,24);
+    if(ep){cx.strokeStyle=epc+'66';cx.lineWidth=1.5;
+      cx.beginPath();cx.moveTo(x-7,292);cx.lineTo(x+7,292);cx.stroke();
+      cx.beginPath();cx.moveTo(x,286);cx.lineTo(x,298);cx.stroke();}
+    cx.fillStyle=epc;cx.font='9px Share Tech Mono';cx.textAlign='center';cx.fillText('ELEC',x,315);
+    // Caption beside the pipe (not overlapping it) — BLUE has no
+    // engine-driven pump, sole conventional source is electric
+    cx.fillStyle=d;cx.font='italic 8px Share Tech Mono';cx.textAlign='left';
+    cx.fillText('Powered by an',x+22,328);
+    cx.fillText('electric pump',x+22,339);
+    aez(x,294,36,38,{t:'BLUE Electric Pump',d:`${OVH.b_pump?'AUTO':'OFF'} · ${ep?'Running':'Stopped'}\nFCOM: Runs when any ENG N2 ≥ 20%\nSole pressure source for BLUE system —\nno engine-driven pump on this circuit.\nBacked up by RAT if both AC buses lost.`});
+    vl(x,318,352,col);
+  }
+
+  // Engine number label (matching real ECAM photo positions)
+  if(s==='G'){cx.fillStyle='#eee';cx.font='14px Share Tech Mono';cx.textAlign='left';cx.fillText('1',x+22,368);}
+  if(s==='Y'){cx.fillStyle='#eee';cx.font='14px Share Tech Mono';cx.textAlign='left';cx.fillText('2',x+22,368);}
+
+  // EDP pump circle
+  const py=s==='B'?370:360;
+  const isG=s==='G',isY=s==='Y';
+  const pumpOn=on;
+  pumpEcam(x,py,pumpOn,col,trans);
+  aez(x,py,38,38,{t:`${SYSNAME[s]} ${s==='B'?'Electric':'Engine-Driven'} Pump`,
+    d:`${trans?'⚡ Transitioning\n':''}${pumpOn?'Pressurizing ✅':'Stopped ⛔'}\n${s==='B'?'AC motor-driven':'Driven by ENG'+engN+' gearbox'}\n${s==='G'?'Min N2: 15% for pressure':''}${s==='Y'?'Min N2: 15% for pressure':''}`});
+
+  vl(x,py+17,398,col);
+
+  // Check valve mark — small diagonal tick on the line just above the
+  // reservoir, matching the real ECAM symbol (non-return valve)
+  cx.strokeStyle=col;cx.lineWidth=2;cx.setLineDash([]);
+  cx.beginPath();cx.moveTo(x-6,405);cx.lineTo(x+2,393);cx.stroke();
+
+  vl(x,398,417,col);
+
+  // Reservoir (real ECAM shows reservoir at bottom)
+  rsvEcam(x,417,472,col,HYD[s].qty);
+  aez(x,444,26,56,{t:`${SYSNAME[s]} Reservoir`,
+    d:`Qty: ${Math.round(HYD[s].qty*100)}%\nPressurized by bleed air ~50 PSI\nNormal range: 60–80%`});
+}
+
+/* PTU — horizontal diagram between G and Y */
+function drawPTU_ecam(){
+  const gx=COL.G.x, yx=COL.Y.x, py=202, mx=(gx+yx)/2;
+  const gCol=ecamCol('G'), yCol=ecamCol('Y');
+  const aC=OVH.ptu?'#3a6644':'#1a2520';
+  const inhib=ptuInhibited();
+
+  // Horizontal lines to/from PTU
+  // Real ECAM: lines show direction of transfer with arrows
+  const gLine=HYD.ptu.dir==='Y→G'?COL.G.c:gCol+'44';
+  const yLine=HYD.ptu.dir==='G→Y'?COL.Y.c:yCol+'44';
+  hl(gx,py,mx-25,gLine);
+  hl(mx+25,py,yx,yLine);
+
+  // PTU body — two interlocked circles (motor symbol)
+  cx.strokeStyle=inhib?'#1a2520':aC;cx.lineWidth=2;
+  cx.beginPath();cx.arc(mx-12,py,12,0,Math.PI*2);cx.stroke();
+  cx.beginPath();cx.arc(mx+12,py,12,0,Math.PI*2);cx.stroke();
+
+  if(HYD.ptu.active&&!inhib){
+    const t=Date.now()*.0045;
+    [[mx-12,1],[mx+12,-1]].forEach(([ox,dr])=>{
+      cx.strokeStyle='#33ff8828';cx.lineWidth=1.5;
+      cx.beginPath();cx.moveTo(ox+Math.cos(t*dr)*9,py+Math.sin(t*dr)*9);
+      cx.lineTo(ox+Math.cos(t*dr+Math.PI)*9,py+Math.sin(t*dr+Math.PI)*9);cx.stroke();
+    });
+    // Animated flow arrow
+    const t2=(Date.now()%700)/700;
+    if(HYD.ptu.dir==='Y→G'){const ax=yx-18-t2*55;cx.fillStyle=COL.Y.c+'cc';cx.beginPath();cx.moveTo(ax,py-5);cx.lineTo(ax-9,py);cx.lineTo(ax,py+5);cx.closePath();cx.fill();}
+    if(HYD.ptu.dir==='G→Y'){const ax=gx+18+t2*55;cx.fillStyle=COL.G.c+'cc';cx.beginPath();cx.moveTo(ax,py-5);cx.lineTo(ax+9,py);cx.lineTo(ax,py+5);cx.closePath();cx.fill();}
+  }
+
+  // Self-test flash
+  if(HYD.ptu.selfTest){
+    const fl=Math.sin(Date.now()*.02)>.0;
+    if(fl){cx.fillStyle='#ffcc0033';cx.fillRect(mx-30,py-16,60,32);}
+  }
+
+  // Static arrows (real ECAM shows ◄ on left side, PTU label, ► on right)
+  tri(gx+50,py,'lt',gCol+'55',5);
+  tri(yx-50,py,'lt',yCol+'55',5);
+
+  // PTU label + auto/off indicator
+  cx.fillStyle=OVH.ptu?(HYD.ptu.active?COL.G.c:'#66aa66'):'#334';
+  cx.font='11px Share Tech Mono';cx.textAlign='center';
+  cx.fillText('PTU',mx,py+4);
+  // Right arrow (matching real ECAM ► symbol)
+  tri(mx+28,py,'rt',OVH.ptu?'#44884':' #222',6);
+
+  if(inhib){cx.fillStyle='#ffcc00';cx.font='7.5px Share Tech Mono';cx.textAlign='center';cx.fillText('INHIB',mx,py+18);}
+  else if(!OVH.ptu){cx.fillStyle='#ff3333';cx.font='8px Share Tech Mono';cx.fillText('OFF',mx,py+18);}
+
+  aez(mx,py,100,36,{t:'PTU (Power Transfer Unit)',
+    d:`Mode: ${OVH.ptu?'AUTO':'OFF'} · Transfer: ${HYD.ptu.dir}\n${inhib?'⚠ INHIBITED (ENG1 start)':HYD.ptu.selfTest?'⚠ SELF TEST':''}
+FCOM: ΔP threshold = 500 PSI
+No fluid exchange — power transfer only
+G qty unchanged when Y→G transfer`});
+}
+
+/* RAT symbol (left of BLUE) */
+function drawRAT_ecam(){
+  const bx=COL.B.x, ry=240, rx=bx-125;
+  const col=HYD.rat.deployed?COL.B.c:'#1a3344';
+  const t=Date.now()*.009;
+
+  cx.fillStyle='#667788';cx.font='11px Share Tech Mono';cx.textAlign='right';cx.fillText('RAT',rx-5,ry+4);
+  tri(rx+10,ry,'rt',col,6,HYD.rat.deployed);
+
+  if(HYD.rat.deployed){
+    // Spinning turbine wheel
+    cx.strokeStyle=COL.B.c;cx.lineWidth=2;cx.beginPath();cx.arc(rx,ry,13,0,Math.PI*2);cx.stroke();
+    for(let i=0;i<3;i++){const a=t+i*(Math.PI*2/3);cx.strokeStyle=COL.B.c+'88';cx.lineWidth=2;cx.beginPath();cx.moveTo(rx,ry);cx.lineTo(rx+Math.cos(a)*11,ry+Math.sin(a)*11);cx.stroke();}
+    cx.strokeStyle=COL.B.c+'55';cx.lineWidth=1.5;cx.setLineDash([4,3]);
+    cx.beginPath();cx.moveTo(rx+14,ry);cx.lineTo(COL.B.x,ry);cx.stroke();cx.setLineDash([]);
+    cx.fillStyle=COL.B.c+'66';cx.font='8px Share Tech Mono';cx.textAlign='center';cx.fillText('2500',COL.B.x-68,ry-10);
+  } else {
+    // Stowed box
+    cx.strokeStyle='#1a3344';cx.lineWidth=1.5;cx.strokeRect(rx-10,ry-8,20,16);
+  }
+  aez(rx,ry,62,32,{t:'RAT (Ram Air Turbine)',
+    d:`${HYD.rat.deployed?'DEPLOYED 🌀':'STOWED 📦'}\nFCOM AUTO: both AC buses lost + >100kt\nPressurizes BLUE to 2500 PSI\nPowers Emergency Generator\nCancel: not possible in flight`});
+}
+
+/* ◄ELEC label on YELLOW side (matches real ECAM) */
+function drawElecLabel_ecam(){
+  const yx=COL.Y.x, ly=240;
+  const on=OVH.y_elec;
+  const col=on?COL.Y.c:COL.Y.d+'88';
+  cx.fillStyle=col;cx.font='11px Share Tech Mono';cx.textAlign='right';
+  cx.fillText('ELEC',yx-2,ly+4);
+  tri(yx-50,ly,'lt',col,6,on);
+  aez(yx-30,ly,80,24,{t:'YELLOW Electric Pump',d:`${on?'ON — Running 3000 PSI':'OFF (normal in flight)'}\nFCOM: Used for cargo/ground ops\nWith PTU: can supply GREEN system\n\nCargo Door: Powered by an electric pump\n(normal). Hand pump = manual backup.`});
+}
+
+/* ═══════════════════════════════════════════════════
+   CARGO DOOR + HAND PUMP  —  matches FCOM reference
+   schematic: consumer fed from YELLOW system, normally
+   powered by an electric pump, with a manual hand pump
+   as backup. Both elements are clickable.
+═══════════════════════════════════════════════════ */
+function drawCargoDoor_ecam(){
+  const cxp=838, cyp=205; // door box center
+  const w=110, h=60;
+  const powered=cargoElecAvail();
+  const moving=CARGO.pos!==CARGO.target;
+  const col = powered ? COL.Y.c : (moving?'#ffb300':COL.Y.d);
+
+  // Box outline (yellow, matches reference diagram color)
+  cx.strokeStyle=col;cx.lineWidth=1.8;cx.setLineDash([]);
+  cx.strokeRect(cxp-w/2,cyp-h/2,w,h);
+  cx.fillStyle=col;cx.font='bold 9px Share Tech Mono';cx.textAlign='center';
+  cx.fillText('CARGO DOOR',cxp,cyp-h/2-8);
+
+  // Door icon: hinged panel that lifts open based on CARGO.pos
+  const hingeX=cxp-w/2+14, hingeY=cyp+8;
+  const doorLen=30;
+  const ang=-Math.PI/2*CARGO.pos; // 0=flat(closed) → -90°=vertical(open)
+  const dx=hingeX+Math.cos(ang)*doorLen, dy=hingeY+Math.sin(ang)*doorLen;
+  cx.strokeStyle=col;cx.lineWidth=3;
+  cx.beginPath();cx.moveTo(hingeX,hingeY);cx.lineTo(dx,dy);cx.stroke();
+  cx.fillStyle=col;cx.beginPath();cx.arc(hingeX,hingeY,2.5,0,Math.PI*2);cx.fill();
+  // Door sill reference line
+  cx.strokeStyle=col+'55';cx.lineWidth=1.5;
+  cx.beginPath();cx.moveTo(hingeX,hingeY);cx.lineTo(hingeX+doorLen,hingeY);cx.stroke();
+
+  // Position % and status text
+  cx.fillStyle=col;cx.font='bold 11px Share Tech Mono';cx.textAlign='left';
+  cx.fillText(`${Math.round(CARGO.pos*100)}%`,cxp-6,cyp+22);
+  cx.fillStyle=powered?COL.Y.c:(CARGO.pos>0&&CARGO.pos<1?'#ffb300':col);
+  cx.font='7.5px Share Tech Mono';
+  const src = powered ? 'ELEC PUMP' : (moving?'HAND PUMP':'---');
+  cx.fillText(src,cxp-6,cyp+32);
+
+  // OPEN/CLOSE command button (top-right corner of box)
+  const btnX=cxp+w/2-16, btnY=cyp-h/2+12;
+  cx.strokeStyle=col;cx.lineWidth=1.5;
+  cx.strokeRect(btnX-13,btnY-8,26,16);
+  cx.fillStyle=col;cx.font='bold 7px Share Tech Mono';cx.textAlign='center';
+  cx.fillText(CARGO.target===0?'CLOSE':'OPEN',btnX,btnY+3);
+  aez(btnX,btnY,30,20,{t:'Cargo Door Command',
+    d:`Commanded: ${CARGO.target===0?'CLOSE':'OPEN'}\nPosition: ${Math.round(CARGO.pos*100)}%\nPower: ${powered?'Electric pump (normal)':'No YELLOW pressure — use hand pump'}\n\nFCOM: Powered by an electric pump.\nManual hand pump = backup power source.`},
+    ()=>toggleCargoDoor());
+
+  // Whole-box hover info
+  aez(cxp,cyp,w+10,h+10,{t:'Cargo Door',
+    d:`Position: ${Math.round(CARGO.pos*100)}% ${CARGO.pos===0?'(CLOSED)':CARGO.pos===1?'(OPEN)':'(TRANSIT)'}\n`+
+      `Power source: ${src}\nYELLOW pressure: ${Math.round(HYD.Y.pressure)} PSI\n`+
+      `FCOM: Fed from YELLOW hydraulic system.\nPowered by an electric pump (normal).\nHand pump provides manual backup power.`});
+
+  /* ── HAND PUMP icon (below cargo door box) ── */
+  const hpX=838, hpY=290;
+  const hpActive=!powered && moving;
+  const hpCol=hpActive?'#ffcc00':'#556';
+  cx.strokeStyle=hpCol;cx.lineWidth=2;cx.setLineDash([]);
+  // Pump body (small rectangle)
+  cx.strokeRect(hpX-14,hpY-6,20,14);
+  // Handle (diagonal lever)
+  const pumpT=(Date.now()*.006)%1;
+  const handleUp = hpActive ? Math.sin(pumpT*Math.PI*2)>0 : false;
+  cx.beginPath();
+  cx.moveTo(hpX+6,hpY-2);
+  cx.lineTo(hpX+20, handleUp?hpY-16:hpY-6);
+  cx.stroke();
+  cx.fillStyle=hpCol;cx.font='bold 8px Share Tech Mono';cx.textAlign='center';
+  cx.fillText('HAND PUMP',hpX,hpY+22);
+  if(!powered && CARGO.pos!==CARGO.target){
+    cx.fillStyle='#ffcc00';cx.font='7px Share Tech Mono';
+    cx.fillText('CLICK TO PUMP',hpX,hpY+32);
+  }
+  aez(hpX,hpY,60,44,{t:'Cargo Door Hand Pump',
+    d:`Manual backup power source.\nUse when YELLOW electric pump / EDP2\npressure is unavailable.\n\n${!powered&&moving?'Click repeatedly to actuate door manually.':powered?'Not required — electric pump is powering the door.':'Door already at commanded position.'}`},
+    ev=>pumpHandPump(ev));
+}
+
+function drawParticles_ecam(){
+  if(Math.random()<.14){
+    ['G','B','Y'].forEach(s=>{
+      if(HYD[s].pressure>0){const{x,c}=COL[s];parts.push({x,y:90+Math.random()*295,dy:.55+Math.random()*.65,c,l:1});}
+    });
+  }
+  for(let i=parts.length-1;i>=0;i--){
+    const p=parts[i];p.y+=p.dy;p.l-=.038;
+    if(p.l<=0){parts.splice(i,1);continue;}
+    cx.fillStyle=p.c+Math.floor(p.l*95).toString(16).padStart(2,'0');
+    cx.beginPath();cx.arc(p.x,p.y,1.3,0,Math.PI*2);cx.fill();
+  }
+}
+
+/* Bottom engine N2 bars */
+function drawEngBar_ecam(){
+  [[1,COL.G.x,'G'],[2,COL.Y.x,'Y']].forEach(([n,x,s])=>{
+    const e=ENG[n];
+    const trans=e.phase==='starting'||e.phase==='shutdown';
+    const col=e.phase==='running'?COL[s].c:trans?'#ffcc00':COL[s].d+'66';
+    cx.fillStyle='#060c06';cx.fillRect(x-38,487,76,6);
+    cx.fillStyle=col+'88';cx.fillRect(x-38,487,76*(e.n2/100),6);
+    cx.fillStyle=col;cx.font='8px Share Tech Mono';cx.textAlign='center';
+    cx.fillText(e.phase==='running'?`ENG${n} IDLE`:e.phase==='off'?`ENG${n} OFF`:e.phase==='starting'?`ENG${n} ↑ N2=${e.n2.toFixed(0)}%`:`ENG${n} ↓`,x,500);
+    cx.fillStyle=col+'77';cx.font='7.5px Share Tech Mono';
+    if(e.phase!=='off')cx.fillText(`EGT ${Math.round(e.egt)}°C`,x,510);
+  });
+  const bOn=HYD.B.pressure>0;
+  cx.fillStyle=(bOn?COL.B.c:COL.B.d)+'77';cx.font='8px Share Tech Mono';cx.textAlign='center';
+  cx.fillText(HYD.rat.deployed?'RAT → BLUE 2500':bOn?'BLUE ELEC AUTO':'B PUMP OFF',COL.B.x,500);
+}
+
+ec.addEventListener('mousemove',ev=>{
+  const r=ec.getBoundingClientRect();
+  const sc=EW/r.width;
+  const mx=(ev.clientX-r.left)*sc,my=(ev.clientY-r.top)*sc;
+  const z=ecZ.find(z=>mx>=z.x&&mx<=z.x+z.w&&my>=z.y&&my<=z.y+z.h);
+  if(z){tip.innerHTML=`<b>${z.info.t}</b>${z.info.d.replace(/\n/g,'<br>')}`;tip.style.left=(ev.clientX+12)+'px';tip.style.top=(ev.clientY-6)+'px';tip.classList.add('show');
+    ec.style.cursor=z.action?'pointer':'default';}
+  else {tip.classList.remove('show');ec.style.cursor='default';}
+});
+ec.addEventListener('mouseleave',()=>tip.classList.remove('show'));
+ec.addEventListener('click',ev=>{
+  const r=ec.getBoundingClientRect();
+  const sc=EW/r.width;
+  const mx=(ev.clientX-r.left)*sc,my=(ev.clientY-r.top)*sc;
+  const z=ecZ.find(z=>mx>=z.x&&mx<=z.x+z.w&&my>=z.y&&my<=z.y+z.h);
+  if(z&&z.action) z.action(ev);
+});
+
+/* ══════ CLOCK ══════ */
+setInterval(()=>{
+  const n=new Date();
+  document.getElementById('clk').textContent=
+    n.getUTCHours().toString().padStart(2,'0')+' H '+n.getUTCMinutes().toString().padStart(2,'0');
+},1000);
+(function(){const n=new Date();document.getElementById('clk').textContent=n.getUTCHours().toString().padStart(2,'0')+' H '+n.getUTCMinutes().toString().padStart(2,'0');})();
+
+/* ══════ MAIN RENDER LOOP ══════ */
+function loop(){drawOH();drawECAM();requestAnimationFrame(loop);}
+loop();
+</script>
+</body>
+</html>

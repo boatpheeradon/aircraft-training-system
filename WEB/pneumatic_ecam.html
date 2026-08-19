@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>A320 — ATA 36 Pneumatic / BLEED</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#0c0c0e;display:flex;flex-direction:column;align-items:center;
+  min-height:100vh;padding:12px 8px 30px;font-family:'Share Tech Mono',monospace;
+  gap:8px;user-select:none;}
+
+/* ═══ OVERHEAD AIR COND PANEL (74VU) ═══ */
+.panel{
+  width:960px;
+  background:linear-gradient(180deg,#3e4d5e 0%,#35424f 40%,#2c3844 100%);
+  border:2px solid #3a4858;border-radius:6px;
+  box-shadow:0 4px 20px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.05);
+  padding:0;overflow:hidden;position:relative;
+}
+/* AIR COND side labels */
+.side-lbl{
+  position:absolute;top:0;bottom:0;width:44px;
+  display:flex;align-items:center;justify-content:center;
+  border-color:#394856;
+}
+.side-lbl.left{left:0;border-right:1px solid #394856;}
+.side-lbl.right{right:0;border-left:1px solid #394856;}
+.side-lbl span{writing-mode:vertical-lr;font-size:11px;font-weight:bold;
+  color:#c8d8e8;letter-spacing:5px;}
+.side-lbl.right span{transform:rotate(180deg);}
+
+.panel-inner{margin:0 44px;display:flex;flex-direction:column;}
+
+/* Top row */
+.top-row{display:flex;align-items:center;padding:10px 14px 6px;gap:8px;
+  border-bottom:1px solid #394856;}
+
+/* Rotary knob */
+.knob-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.knob-lbl{font-size:7.5px;color:#99aabb;letter-spacing:2px;text-align:center;line-height:1.3;}
+.knob{border-radius:50%;position:relative;cursor:pointer;
+  background:radial-gradient(circle at 38% 32%,#6e7e8e,#3e4e5e,#1e2838);
+  border:2px solid #5a6a7a;
+  box-shadow:0 6px 16px rgba(0,0,0,.8),inset 0 2px 5px rgba(255,255,255,.1),
+             inset 0 -2px 4px rgba(0,0,0,.4);}
+.knob:hover{border-color:#7a8a9a;}
+.knob:active{filter:brightness(.9);}
+.knob-ptr{position:absolute;top:50%;left:50%;border-radius:3px;
+  background:linear-gradient(180deg,#f0f0f0,#c0c0c0);
+  transform-origin:50% 100%;transition:transform .25s cubic-bezier(.4,0,.2,1);}
+.knob-val{font-size:7px;color:#88aacc;letter-spacing:1px;}
+
+/* Pushbutton — real A320 style */
+.pb-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.pb-top-lbl{font-size:7px;color:#99aabb;letter-spacing:1.5px;text-align:center;}
+.pb{
+  background:linear-gradient(170deg,#1a2535,#0e1820);
+  border:2px solid #c8b870;border-radius:3px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  box-shadow:0 3px 10px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.04);
+  transition:border-color .1s,transform .08s;position:relative;
+}
+.pb:hover{border-color:#e8d890;}
+.pb:active{transform:translateY(2px);box-shadow:0 1px 5px rgba(0,0,0,.8);}
+.pb-inner-lbl{font-size:6.5px;color:#8899aa;letter-spacing:1px;text-align:center;
+  line-height:1.3;padding:2px 3px;}
+.pb-ind{height:13px;display:flex;align-items:center;justify-content:center;
+  border-radius:1px;margin:1px 3px 2px;font-size:7.5px;font-weight:bold;
+  letter-spacing:1px;transition:all .25s;}
+/* Indicator states */
+.i-dk{background:#04060b;color:#111;}
+.i-on{background:#001a0a;color:#00ff66;}
+.i-of{background:#120000;color:#ff2222;}
+.i-au{background:#00100a;color:#00dd55;}
+.i-am{background:#140e00;color:#ffcc00;}
+.i-ign{background:#001428;color:#44aaff;}
+
+/* Box label (PACK 1/2, system labels) */
+.box-lbl{font-size:8px;color:#dde;letter-spacing:2px;
+  border:1px solid #5a6a7a;padding:1px 8px;border-radius:1px;white-space:nowrap;}
+
+/* Divider */
+.vdiv{width:1px;background:#394856;align-self:stretch;margin:0 3px;}
+
+/* Bottom row */
+.bot-row{display:flex;align-items:center;padding:8px 14px 10px;gap:7px;}
+
+/* Wiring canvas */
+#wireCV{display:block;}
+
+/* ═══ ECAM FRAME ═══ */
+.ecam{position:relative;width:960px;border:3px solid #060606;border-radius:5px;
+  overflow:hidden;box-shadow:0 0 60px rgba(0,130,40,.04),0 0 120px rgba(0,0,0,.96);}
+.ecam::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:5;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,
+  rgba(0,0,0,.042) 3px,rgba(0,0,0,.042) 4px);}
+.ehdr{height:34px;background:#010703;border-bottom:1px solid #081308;
+  display:flex;align-items:center;justify-content:center;}
+.ettl{font-size:15px;font-weight:bold;color:#ddd;letter-spacing:7px;
+  text-decoration:underline;text-underline-offset:4px;}
+.ewrn{position:absolute;top:36px;left:5px;right:5px;z-index:7;
+  color:#ff5000;font-size:9px;letter-spacing:2px;text-align:center;padding:2px;
+  border:1px solid rgba(200,40,0,.22);background:rgba(160,25,0,.07);
+  pointer-events:none;transition:opacity .3s;}
+@keyframes blk{0%,100%{opacity:1}50%{opacity:.12}}
+.ewrn{animation:blk .85s infinite;}
+#cv{display:block;}
+.eftr{height:46px;background:#010703;border-top:1px solid #081308;
+  display:flex;align-items:center;padding:0 16px;gap:16px;position:relative;}
+.ef{display:flex;gap:4px;align-items:baseline;}
+.el{color:#253530;font-size:9.5px;} .ev{color:#00ff88;font-size:10.5px;font-weight:bold;}
+.eu{color:#182520;font-size:8.5px;}
+.eclk{position:absolute;left:50%;transform:translateX(-50%);
+  color:#00ff88;font-size:10.5px;letter-spacing:4px;}
+
+/* Tooltip */
+.tip{position:fixed;background:rgba(1,4,2,.97);border:1px solid rgba(0,200,70,.15);
+  color:#aaa;padding:9px 12px;font-size:10px;pointer-events:none;z-index:999;
+  max-width:290px;line-height:1.75;border-radius:3px;opacity:0;transition:opacity .08s;}
+.tip.show{opacity:1;}
+.tip b{color:#00ff88;display:block;margin-bottom:3px;font-size:10.5px;}
+@keyframes rpl{to{width:36px;height:36px;opacity:0}}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     OVERHEAD AIR COND PANEL  (74VU)
+     Layout matches real A320 photo exactly
+═══════════════════════════════════════════ -->
+<div class="panel">
+  <div class="side-lbl left"><span>AIR COND</span></div>
+  <div class="side-lbl right"><span>AIR COND</span></div>
+
+  <div class="panel-inner">
+
+    <!-- ── TOP ROW: PACK FLOW + TEMP SELECTORS + X BLEED + HOT AIR ── -->
+    <div class="top-row">
+
+      <!-- PACK FLOW -->
+      <div class="knob-wrap" style="min-width:88px;">
+        <div class="knob-lbl">PACK FLOW<br>NORM</div>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <span style="font-size:8px;color:#99aabb;">LO</span>
+          <div class="knob" style="width:56px;height:56px;" onclick="cycleFlow(0)" title="Pack flow LO/NORM/HI">
+            <div class="knob-ptr" id="pf0P"
+              style="width:3px;height:20px;margin-left:-1.5px;margin-top:-20px;transform:rotate(0deg);"></div>
+          </div>
+          <span style="font-size:8px;color:#99aabb;">HI</span>
+        </div>
+        <div class="knob-val" id="pf0V">NORM</div>
+      </div>
+
+      <div class="vdiv"></div>
+
+      <!-- COCKPIT temp rotary -->
+      <div class="knob-wrap" style="flex:1;">
+        <div class="box-lbl">COCKPIT</div>
+        <div class="knob" style="width:64px;height:64px;" onclick="cycleTemp('cpt')" title="Cockpit temp">
+          <div class="knob-ptr" id="cptP"
+            style="width:3px;height:22px;margin-left:-1.5px;margin-top:-22px;transform:rotate(-20deg);"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;width:64px;">
+          <span style="font-size:7px;color:#8899aa;">COLD</span>
+          <span style="font-size:7px;color:#8899aa;">HOT</span>
+        </div>
+      </div>
+
+      <!-- FWD CABIN temp rotary -->
+      <div class="knob-wrap" style="flex:1;">
+        <div class="box-lbl">FWD  CABIN</div>
+        <div class="knob" style="width:64px;height:64px;" onclick="cycleTemp('fwd')" title="Fwd cabin temp">
+          <div class="knob-ptr" id="fwdP"
+            style="width:3px;height:22px;margin-left:-1.5px;margin-top:-22px;transform:rotate(-20deg);"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;width:64px;">
+          <span style="font-size:7px;color:#8899aa;">COLD</span>
+          <span style="font-size:7px;color:#8899aa;">HOT</span>
+        </div>
+      </div>
+
+      <!-- AFT CABIN temp rotary -->
+      <div class="knob-wrap" style="flex:1;">
+        <div class="box-lbl">AFT  CABIN</div>
+        <div class="knob" style="width:64px;height:64px;" onclick="cycleTemp('aft')" title="Aft cabin temp">
+          <div class="knob-ptr" id="aftP"
+            style="width:3px;height:22px;margin-left:-1.5px;margin-top:-22px;transform:rotate(-20deg);"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;width:64px;">
+          <span style="font-size:7px;color:#8899aa;">COLD</span>
+          <span style="font-size:7px;color:#8899aa;">HOT</span>
+        </div>
+      </div>
+
+      <div class="vdiv"></div>
+
+      <!-- X BLEED rotary -->
+      <div class="knob-wrap" style="min-width:100px;">
+        <div class="knob-lbl">X BLEED</div>
+        <div style="display:flex;align-items:center;gap:2px;position:relative;">
+          <span style="font-size:7px;color:#99aabb;margin-right:2px;">SHUT</span>
+          <div class="knob" style="width:56px;height:56px;" onclick="cycleXB()" title="X-Bleed valve">
+            <div class="knob-ptr" id="xbP"
+              style="width:3px;height:20px;margin-left:-1.5px;margin-top:-20px;transform:rotate(0deg);"></div>
+          </div>
+          <span style="font-size:7px;color:#99aabb;margin-left:2px;">OPEN</span>
+        </div>
+        <div class="knob-val" id="xbV">AUTO</div>
+      </div>
+
+      <div class="vdiv"></div>
+
+      <!-- HOT AIR pb -->
+      <div class="pb-wrap" style="min-width:70px;">
+        <div class="pb-top-lbl">HOT AIR</div>
+        <div class="pb" style="width:58px;height:52px;" onclick="togglePB('hotair')" title="Hot air valve">
+          <div class="pb-inner-lbl">HOT<br>AIR</div>
+          <div class="pb-ind i-au" id="pb_hotair">AUTO</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── Green wiring canvas ── -->
+    <canvas id="wireCV" width="872" height="30"></canvas>
+
+    <!-- ── BOTTOM ROW ── -->
+    <div class="bot-row">
+
+      <!-- PACK 1 label + pb -->
+      <div class="pb-wrap">
+        <div class="box-lbl" style="margin-bottom:4px;">PACK 1</div>
+        <div class="pb" style="width:58px;height:52px;" onclick="togglePB('pack1')" title="Pack 1">
+          <div class="pb-inner-lbl">PACK<br>FLOW</div>
+          <div class="pb-ind i-of" id="pb_pack1">OFF</div>
+        </div>
+      </div>
+
+      <div class="vdiv"></div>
+
+      <!-- ENG 1 BLEED -->
+      <div class="pb-wrap">
+        <div class="pb-top-lbl">ENG 1 BLEED</div>
+        <div class="pb" style="width:58px;height:52px;" onclick="togglePB('e1bleed')" title="Eng 1 bleed">
+          <div class="pb-inner-lbl">ENG 1<br>BLEED</div>
+          <div class="pb-ind i-of" id="pb_e1bleed">OFF</div>
+        </div>
+      </div>
+
+      <!-- START (Eng 1) -->
+      <div class="pb-wrap">
+        <div class="pb-top-lbl">START</div>
+        <div class="pb" style="width:58px;height:52px;" onclick="toggleEng(1)" title="Eng 1 start">
+          <div class="pb-inner-lbl">ENG 1<br>START</div>
+          <div class="pb-ind i-ign" id="pb_eng1s">IGN</div>
+        </div>
+      </div>
+
+      <!-- RAM AIR (guarded — real A320 has red/white striped guard) -->
+      <div class="pb-wrap" style="position:relative;">
+        <div class="pb-top-lbl">RAM AIR</div>
+        <div id="ramGuard" onclick="liftRamGuard(event)" title="Lift guard first"
+          style="position:absolute;top:14px;left:2px;right:2px;height:24px;z-index:3;
+          background:repeating-linear-gradient(45deg,#c81a1a,#c81a1a 4px,#7a0f0f 4px,#7a0f0f 8px);
+          border:1px solid #ff5533;border-radius:3px 3px 0 0;cursor:pointer;
+          transform-origin:top center;transition:transform .25s ease,opacity .25s;box-shadow:none;">
+        </div>
+        <div class="pb" id="ramBtn" style="width:58px;height:52px;" onclick="toggleRam()" title="Ram air">
+          <div class="pb-inner-lbl">RAM<br>AIR</div>
+          <div class="pb-ind i-dk" id="pb_ramair"></div>
+        </div>
+      </div>
+
+      <!-- GND HP -->
+      <div class="pb-wrap">
+        <div class="pb-top-lbl">GND HP</div>
+        <div class="pb" style="width:58px;height:52px;" onclick="togglePB('gndhp')" title="Ground high pressure">
+          <div class="pb-inner-lbl">GND<br>HP</div>
+          <div class="pb-ind i-dk" id="pb_gndhp"></div>
+        </div>
+      </div>
+
+      <!-- APU BLEED -->
+      <div class="pb-wrap">
+        <div class="pb-top-lbl">APU BLEED</div>
+        <div class="pb" style="width:58px;height:52px;" onclick="togglePB('apubleed')" title="APU bleed">
+          <div class="pb-inner-lbl">APU<br>BLEED</div>
+          <div class="pb-ind i-on" id="pb_apubleed">ON</div>
+        </div>
+      </div>
+
+      <div class="vdiv"></div>
+
+      <!-- APU START -->
+      <div class="pb-wrap">
+        <div class="pb-top-lbl">APU START</div>
+        <div class="pb" style="width:58px;height:52px;" onclick="toggleAPU()" title="APU start">
+          <div class="pb-inner-lbl">APU<br>MASTER</div>
+          <div class="pb-ind i-dk" id="pb_apu"></div>
+        </div>
+      </div>
+
+      <div class="vdiv"></div>
+
+      <!-- ENG 2 BLEED -->
+      <div class="pb-wrap">
+        <div class="pb-top-lbl">ENG 2 BLEED</div>
+        <div class="pb" style="width:58px;height:52px;" onclick="togglePB('e2bleed')" title="Eng 2 bleed">
+          <div class="pb-inner-lbl">ENG 2<br>BLEED</div>
+          <div class="pb-ind i-of" id="pb_e2bleed">OFF</div>
+        </div>
+      </div>
+
+      <!-- START (Eng 2) -->
+      <div class="pb-wrap">
+        <div class="pb-top-lbl">START</div>
+        <div class="pb" style="width:58px;height:52px;" onclick="toggleEng(2)" title="Eng 2 start">
+          <div class="pb-inner-lbl">ENG 2<br>START</div>
+          <div class="pb-ind i-ign" id="pb_eng2s">IGN</div>
+        </div>
+      </div>
+
+      <div class="vdiv"></div>
+
+      <!-- PACK 2 label + pb -->
+      <div class="pb-wrap">
+        <div class="box-lbl" style="margin-bottom:4px;">PACK 2</div>
+        <div class="pb" style="width:58px;height:52px;" onclick="togglePB('pack2')" title="Pack 2">
+          <div class="pb-inner-lbl">PACK<br>FLOW</div>
+          <div class="pb-ind i-of" id="pb_pack2">OFF</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ECAM BLEED SD ═══ -->
+<div class="ecam">
+  <div class="ehdr"><span class="ettl">BLEED</span></div>
+  <div class="ewrn" id="ecW" style="opacity:0"></div>
+  <canvas id="cv" width="960" height="520"></canvas>
+  <div class="eftr">
+    <div class="ef"><span class="el">TAT</span><span class="ev">+12</span><span class="eu">°C</span></div>
+    <div class="ef"><span class="el">SAT</span><span class="ev">+12</span><span class="eu">°C</span></div>
+    <div class="eclk" id="ck">22 H 12</div>
+    <div style="flex:1"></div>
+    <div class="ef"><span class="el">GW</span><span class="ev">59700</span><span class="eu">KG</span></div>
+  </div>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+'use strict';
+/* ══════════════════════════════════════════════════════════
+   A320 PNEUMATIC / BLEED AIR SYSTEM — ATA 36
+   FCOM DSC-36 accurate
+
+   Architecture:
+   ENG1 ─[IP valve]─[HP valve]─[PRSOV1]──┬──[X-BLD]──┬──[PRSOV2]─[HP valve]─[IP valve]─ ENG2
+                                           │           │
+                                      LEFT MFD     RIGHT MFD
+                                           │           │
+                                       [PACK1]     [PACK2]
+                                           │           │
+                                      [APU BLD valve]─┘
+                                      (APU feeds both via X-BLD)
+
+   Pressure: 30-45 PSI regulated (FCOM)
+   HP stage: N2 > 70% (high power)
+   IP stage: N2 < 70% (normal ops)
+   APU bleed: ~40 PSI, max FL220
+══════════════════════════════════════════════════════════ */
+
+/* ── ENGINE STATE ── */
+const ENG={
+  1:{on:false,n1:0,n2:0,tmr:null,egt:0},
+  2:{on:false,n1:0,n2:0,tmr:null,egt:0}
+};
+const APU_S={on:false,pct:0,tmr:null};
+
+/* ── SYSTEM STATE ── */
+const B={
+  e1bleed:true, e2bleed:true,
+  apubleed:false,
+  xbleed:'AUTO',
+  pack1:true, pack2:true,
+  hotair:true,
+  ramair:false,
+  gndhp:false,
+  wai:false, eai1:false, eai2:false,
+};
+
+/* Temperature setpoints (degrees, -100=full cold, +100=full hot, 0=center) */
+const TEMP={cpt:0,fwd:0,aft:0};
+const FLOW_MODES=['LO','NORM','HI'];
+let flowIdx=1; // NORM default
+const XB_MODES=['SHUT','AUTO','OPEN'];
+let xbIdx=1;
+
+/* ── ROTARY CONTROLS ── */
+const TEMP_RANGE=90; // degrees rotation either side
+function cycleTemp(zone){
+  TEMP[zone]=TEMP[zone]<60?TEMP[zone]+20:-60;
+  const ang=TEMP[zone]/100*TEMP_RANGE;
+  const ptrId={cpt:'cptP',fwd:'fwdP',aft:'aftP'}[zone];
+  document.getElementById(ptrId).style.transform=`rotate(${ang}deg)`;
+}
+function cycleFlow(n){
+  flowIdx=(flowIdx+1)%3;
+  const ang=[-40,0,40][flowIdx];
+  document.getElementById('pf0P').style.transform=`rotate(${ang}deg)`;
+  document.getElementById('pf0V').textContent=FLOW_MODES[flowIdx];
+}
+function cycleXB(){
+  xbIdx=(xbIdx+1)%3;
+  B.xbleed=XB_MODES[xbIdx];
+  const ang=[-60,0,60][xbIdx];
+  document.getElementById('xbP').style.transform=`rotate(${ang}deg)`;
+  document.getElementById('xbV').textContent=B.xbleed;
+  updWarn(); splash();
+}
+
+/* ── RAM AIR — guarded pushbutton ──
+   FCOM: RAM AIR valve provides emergency/backup fresh-air ventilation
+   directly from outside air, bypassing the packs. Physically interlocked:
+   the valve CANNOT open while the cabin still has significant pressure
+   differential (it's a hull-mounted valve — opening it while pressurized
+   would cause rapid decompression). We approximate "cabin pressurized"
+   as "at least one pack is actively supplying air".
+   The pushbutton must be guarded (lift cover) before it can be pressed,
+   matching the real red/white striped guard on the overhead panel. */
+let ramGuardLifted=false, ramGuardTimer=null;
+
+function liftRamGuard(ev){
+  ev.stopPropagation();
+  ramGuardLifted=true;
+  const g=document.getElementById('ramGuard');
+  g.style.transform='rotateX(-95deg) translateY(-8px)';
+  g.style.opacity='0.18';
+  clearTimeout(ramGuardTimer);
+  ramGuardTimer=setTimeout(closeRamGuard,4000);
+}
+function closeRamGuard(){
+  ramGuardLifted=false;
+  const g=document.getElementById('ramGuard');
+  if(g){g.style.transform='none';g.style.opacity='1';}
+}
+function toggleRam(){
+  if(!ramGuardLifted){
+    // Flash a red hint if user tries to press without lifting guard first
+    const g=document.getElementById('ramGuard');
+    if(g){g.style.boxShadow='0 0 10px 2px #ff2222';setTimeout(()=>{g.style.boxShadow='none';},280);}
+    return;
+  }
+  B.ramair=!B.ramair;
+  updPB('ramair'); updWarn(); splash();
+  clearTimeout(ramGuardTimer);
+  closeRamGuard();
+}
+
+/* ── PUSHBUTTON TOGGLE (general) ── */
+function togglePB(id){
+  B[id]=!B[id];
+  updPB(id); updWarn(); splash();
+}
+function updPB(id){
+  const el=document.getElementById('pb_'+id);
+  if(!el)return;
+  const v=B[id];
+  if(id==='ramair'){
+    // Pushbutton shows commanded state (ON/blank) — actual valve
+    // position (open/inhibited) is shown on the ECAM diagram instead.
+    el.textContent=v?'ON':''; el.className='pb-ind '+(v?'i-on':'i-dk');
+    return;
+  }
+  if(id==='apubleed'||id==='gndhp'||id==='wai'||id==='eai1'||id==='eai2'){
+    el.textContent=v?'ON':''; el.className='pb-ind '+(v?'i-on':'i-dk');
+  } else if(id==='hotair'){
+    el.textContent=v?'AUTO':'OFF'; el.className='pb-ind '+(v?'i-au':'i-of');
+  } else {
+    el.textContent=v?'AUTO':'OFF'; el.className='pb-ind '+(v?'i-au':'i-of');
+  }
+}
+
+/* ── ENGINE START/STOP ──
+   FCOM: bleed valve is automatically closed during engine start
+   sequence (starter/ignition) and only opens once N2 stabilizes
+   near idle (~58%). Modeled via N2>=50% threshold in compute().
+*/
+function toggleEng(n){
+  const e=ENG[n]; e.on=!e.on;
+  const el=document.getElementById('pb_eng'+n+'s');
+  if(e.on){
+    el.textContent='RUN'; el.className='pb-ind i-on';
+    if(e.tmr)clearInterval(e.tmr);
+    e.tmr=setInterval(()=>{
+      e.n2=Math.min(e.n2+0.8,58.3); e.n1=Math.min(e.n1+0.45,23.4);
+      e.egt=Math.min(e.egt+8,430);
+      if(e.n2>=58.3){clearInterval(e.tmr);e.tmr=null;}
+      updWarn();
+    },80);
+  } else {
+    el.textContent='IGN'; el.className='pb-ind i-ign';
+    if(e.tmr)clearInterval(e.tmr);
+    e.tmr=setInterval(()=>{
+      e.n2=Math.max(e.n2-0.6,0); e.n1=Math.max(e.n1-0.35,0);
+      e.egt=Math.max(e.egt-4,0);
+      if(e.n2<=0){clearInterval(e.tmr);e.tmr=null;}
+      updWarn();
+    },80);
+  }
+  updWarn();
+}
+
+function toggleAPU(){
+  APU_S.on=!APU_S.on;
+  const el=document.getElementById('pb_apu');
+  if(APU_S.on){
+    el.textContent='RUN'; el.className='pb-ind i-on';
+    if(APU_S.tmr)clearInterval(APU_S.tmr);
+    APU_S.tmr=setInterval(()=>{
+      APU_S.pct=Math.min(APU_S.pct+1.5,100);
+      if(APU_S.pct>=100)clearInterval(APU_S.tmr);
+      updWarn();
+    },80);
+  } else {
+    el.textContent=''; el.className='pb-ind i-dk';
+    if(APU_S.tmr)clearInterval(APU_S.tmr);
+    APU_S.tmr=setInterval(()=>{
+      APU_S.pct=Math.max(APU_S.pct-2,0);
+      if(APU_S.pct<=0){clearInterval(APU_S.tmr);B.apubleed=false;updPB('apubleed');}
+      updWarn();
+    },80);
+  }
+}
+
+/* ── COMPUTE BLEED STATE  —  FCOM DSC-36 accurate ── */
+function compute(){
+  const e1=ENG[1],e2=ENG[2];
+
+  /* FCOM: bleed valve stays CLOSED during start sequence and only
+     opens once N2 has stabilized close to idle (~58.3%). Using a
+     50% threshold represents "start sequence complete". */
+  const START_THRESH=50;
+  const e1av=e1.on && e1.n2>=START_THRESH && B.e1bleed;
+  const e2av=e2.on && e2.n2>=START_THRESH && B.e2bleed;
+  const apuAv=APU_S.on && APU_S.pct>=95 && B.apubleed;
+  const gndAv=B.gndhp; // ground cart: always 45 PSI when selected
+
+  /* FCOM: PRSOV regulates bleed to a fairly constant 42-46 PSI
+     once online — it does NOT scale linearly with N2. Only during
+     the last part of spool-up (50%→58.3%) does pressure ramp in. */
+  const e1psi=e1av?Math.round(42+Math.min((e1.n2-START_THRESH)/(58.3-START_THRESH),1)*4):0;
+  const e2psi=e2av?Math.round(42+Math.min((e2.n2-START_THRESH)/(58.3-START_THRESH),1)*4):0;
+  const apupsi=apuAv?40:0;
+  const gndpsi=gndAv?45:0;
+
+  /* FCOM X-BLEED AUTO logic:
+     - Both engines bleeding normally → valve stays CLOSED (isolated)
+     - Only ONE engine bleed source available → OPENS (cross-feed)
+     - APU bleed selected with fewer than 2 engine sources → OPENS
+     - Ground HP cart with no engine/APU source → OPENS             */
+  const engSources=(e1av?1:0)+(e2av?1:0);
+  let xbOpen=false;
+  if(B.xbleed==='OPEN') xbOpen=true;
+  else if(B.xbleed==='AUTO'){
+    xbOpen = (engSources===1) ||
+             (apuAv && engSources<2) ||
+             (gndAv && engSources===0 && !apuAv);
+  }
+
+  /* Manifold pressures — left feeds from ENG1 normally,
+     right feeds from ENG2 normally. X-BLEED / APU / GND cross-feed
+     both sides when their valve state permits. */
+  let lP=0,rP=0;
+  if(e1av) lP=Math.max(lP,e1psi);
+  if(e2av) rP=Math.max(rP,e2psi);
+  if(apuAv){ lP=Math.max(lP,apupsi); rP=Math.max(rP,apupsi); }
+  if(gndAv){ lP=Math.max(lP,gndpsi); rP=Math.max(rP,gndpsi); }
+  if(xbOpen){
+    if(e2psi>0) lP=Math.max(lP,Math.round(e2psi*.96));
+    if(e1psi>0) rP=Math.max(rP,Math.round(e1psi*.96));
+    if(apuAv){ lP=Math.max(lP,apupsi); rP=Math.max(rP,apupsi); }
+    if(gndAv){ lP=Math.max(lP,gndpsi); rP=Math.max(rP,gndpsi); }
+  }
+
+  /* Duct temps — HP stage runs hotter than IP stage */
+  const hpV1now=e1av&&e1.n2>=70, hpV2now=e2av&&e2.n2>=70;
+  const e1duct=e1av?Math.round((hpV1now?230:178)+Math.sin(Date.now()*.003)*4):0;
+  const e2duct=e2av?Math.round((hpV2now?230:178)+Math.sin(Date.now()*.004)*4):0;
+
+  // Pack compressor temps (hot side) ~ 170-200°C, scales with source pressure
+  const p1hot=lP>0?Math.round(160+lP*0.7+Math.random()*4):0;
+  const p2hot=rP>0?Math.round(160+rP*0.7+Math.random()*4):0;
+
+  /* Pack minimum operating pressure ~18 PSI (FCOM). Below this the
+     pack flow control valve will not stay open / flow is insufficient. */
+  const PACK_MIN_PSI=18;
+  const pack1On=B.pack1 && lP>=PACK_MIN_PSI;
+  const pack2On=B.pack2 && rP>=PACK_MIN_PSI;
+
+  // Pack outlet temp (cold side, after heat exchanger + trim air)
+  const p1cold=pack1On?Math.round(10+TEMP.fwd/10):0;
+  const p2cold=pack2On?Math.round(10+TEMP.aft/10):0;
+
+  /* RAM AIR — FCOM interlock:
+     Valve physically cannot open while cabin still holds significant
+     pressure differential. Approximated here as "any pack actively
+     supplying air = cabin pressurized". Command (B.ramair) can be
+     selected any time, but the valve only actually opens once the
+     cabin has depressurized (both packs not supplying air). */
+  const cabinPressurized = pack1On || pack2On;
+  const ramCmd  = B.ramair;
+  const ramOpen = ramCmd && !cabinPressurized;
+
+  return {
+    e1av,e2av,apuAv,gndAv,xbOpen,
+    e1psi,e2psi,apupsi,gndpsi,lP,rP,
+    e1duct,e2duct,p1hot,p2hot,p1cold,p2cold,
+    ipV1:e1av&&e1.n2<70,hpV1:hpV1now,
+    ipV2:e2av&&e2.n2<70,hpV2:hpV2now,
+    pack1On,pack2On,
+    engSources,
+    cabinPressurized,ramCmd,ramOpen,
+  };
+}
+
+/* ── WARNINGS ── */
+function updWarn(){
+  const V=compute();
+  const W=[];
+  if(!V.lP&&!V.rP)                    W.push('NO BLEED SOURCE');
+  if(!V.e1av&&ENG[1].on&&B.e1bleed&&ENG[1].n2<50&&ENG[1].n2>0)
+                                        {} // start sequence — not a fault, no warning
+  if(!V.e2av&&ENG[2].on&&B.e2bleed&&ENG[2].n2<50&&ENG[2].n2>0)
+                                        {} // start sequence — not a fault, no warning
+  if(B.apubleed&&!APU_S.on)           W.push('APU BLEED — APU NOT RUNNING');
+  if(!B.pack1&&!B.pack2)              W.push('BOTH PACKS OFF');
+  if(B.pack1&&V.lP>0&&!V.pack1On)     W.push('PACK 1 LO PR');
+  if(B.pack2&&V.rP>0&&!V.pack2On)     W.push('PACK 2 LO PR');
+  if(V.ramCmd && !V.ramOpen)          W.push('RAM AIR INHIBITED — CAB PRESS');
+  if(V.ramOpen)                        W.push('RAM AIR ON');
+  if(B.gndhp&&(ENG[1].on||ENG[2].on)) W.push('GND HP ON — ENGINE RUNNING');
+  if(B.wai)                            W.push('WING ANTI ICE ON');
+  if(V.e1duct>250||V.e2duct>250)      W.push('BLEED DUCT HOT');
+  const el=document.getElementById('ecW');
+  if(W.length){el.textContent='⚠  '+W.slice(0,3).join('   ·   ')+'  ⚠';el.style.opacity='1';}
+  else el.style.opacity='0';
+}
+
+/* ── OVERHEAD WIRING CANVAS ──
+   Green lines connecting components like real panel photo */
+function drawWires(){
+  const wc=document.getElementById('wireCV');
+  const wg=wc.getContext('2d');
+  const W=wc.width,H=wc.height;
+  wg.clearRect(0,0,W,H);
+  const V=compute();
+  const lc=V.lP>0?'#00ff88':'#00ff8844';
+  const rc=V.rP>0?'#00ff88':'#00ff8844';
+  const xc=V.xbOpen?'#00ff88':'#00ff8844';
+
+  // Main horizontal pipe across the panel
+  wg.strokeStyle='#00ff8866';wg.lineWidth=1.5;wg.setLineDash([]);
+  // Left section
+  wg.strokeStyle=lc;
+  wg.beginPath();wg.moveTo(10,15);wg.lineTo(W/2-20,15);wg.stroke();
+  // Right section
+  wg.strokeStyle=rc;
+  wg.beginPath();wg.moveTo(W/2+20,15);wg.lineTo(W-10,15);wg.stroke();
+  // Center (X-BLD area)
+  wg.strokeStyle=xc;
+  wg.beginPath();wg.moveTo(W/2-20,15);wg.lineTo(W/2+20,15);wg.stroke();
+
+  // Flow direction arrows
+  [[W*0.25,'l'],[W*0.5,'x'],[W*0.75,'r']].forEach(([ax,s])=>{
+    const col=s==='l'?lc:s==='r'?rc:xc;
+    if(col===lc&&!V.lP) return;
+    wg.fillStyle=col;
+    wg.beginPath();
+    wg.moveTo(ax+6,15);wg.lineTo(ax-2,10);wg.lineTo(ax-2,20);
+    wg.closePath();wg.fill();
+  });
+
+  // Vertical taps to components
+  const taps=[
+    {x:60,  col:lc},   // PACK 1
+    {x:W-60,col:rc},   // PACK 2
+    {x:W/2, col:xc},   // X-BLD
+  ];
+  taps.forEach(t=>{
+    wg.strokeStyle=t.col;wg.lineWidth=1.5;
+    wg.beginPath();wg.moveTo(t.x,0);wg.lineTo(t.x,H);wg.stroke();
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ECAM BLEED SD CANVAS
+   Layout matched to real A320 ECAM BLEED page photo:
+   
+   - ENG1/2 in lower corners with N1/N2 gauges
+   - Pack units (trapezoid) with C/H compressor symbol
+   - HP/IP valve semicircles at engine connection
+   - PSI readout in amber bordered box
+   - °C readout below PSI
+   - APU valve circle below center X-BLD
+   - Crossbleed horizontal duct with circle valves
+   - Top manifold connecting packs
+   - Flow triangles ▲ on manifold
+   - RAM AIR circle (center top)
+═══════════════════════════════════════════════════════════ */
+const cv=document.getElementById('cv');
+const cx=cv.getContext('2d');
+const EW=cv.width,EH=cv.height;
+const ZS=[];
+function az(x,y,w,h,t,d){ZS.push({x:x-w/2,y:y-h/2,w,h,t,d});}
+
+/* Colors */
+const G='#00ff88',AM='#ffbb22',CY='#22ccdd',DG='#00ff8833',RD='#ff3322',WH='#dddddd';
+
+/* Layout — matched to real ECAM photo */
+const MX=EW/2;           // center X
+const P1X=195, P2X=EW-195; // pack centers
+const TOPY=72;            // top manifold Y
+const PACKY=195;          // pack unit center Y
+const DUCTY=310;          // cross-duct Y
+const VALVY=400;          // HP/IP valve Y
+const ENGY=450;           // engine labels Y
+
+let frameN=0;
+
+function drawECAM(){
+  cx.clearRect(0,0,EW,EH);
+  cx.fillStyle='#010804';cx.fillRect(0,0,EW,EH);
+  ZS.length=0;
+  frameN++;
+
+  const V=compute();
+  const {e1av,e2av,apuAv,xbOpen,
+         e1psi,e2psi,lP,rP,
+         e1duct,e2duct,p1hot,p2hot,p1cold,p2cold,
+         ipV1,hpV1,ipV2,hpV2,pack1On,pack2On}=V;
+
+  /* ══════════════════════════════════════════════
+     EXACT layout from real A320 ECAM BLEED photo:
+     
+     Numbers match photo callouts:
+     ①  Pack outlet temp top (12°C)
+     ②  RAM AIR circle (center top)
+     ③  C label (cold side)
+     ④  Compressor hot temp (179°C)
+     ⑤  LO label
+     ⑥  Pack outlet valve (circle)
+     ⑦  Top manifold triangle (center)
+     ⑧  HP valve (semicircle + line)
+     ⑨  Engine bleed circle valve
+     ⑩⑪ PSI box + °C reading (left)
+     ⑫  APU valve circle
+     ⑬  X-bleed valve circle (right of center)
+     ⑭  Cross-duct center node
+     ⑮⑯ Left manifold branch circles
+     ⑰  Engine 1 label
+  ═══════════════════════════════════════════════ */
+
+  /* Canvas dimensions matched to photo proportions
+     Photo: ~680×530 → we use 960×520
+     Scaling factor ~1.41 horizontal, ~0.98 vertical */
+
+  // ── Layout X positions ──
+  const P1X=185;      // PACK 1 center X  (photo: ~135px → *1.41≈190)
+  const P2X=EW-185;   // PACK 2 center X  (mirror)
+  const MX=EW/2;      // center
+
+  // ── Layout Y positions ──
+  const TOPY=65;      // top manifold line Y
+  const PACKY=188;    // pack unit center Y
+  const DUCTY=312;    // cross-duct Y (⑭⑮⑯)
+  const VALVY=415;    // HP/IP valve row Y
+  const ENGY=470;     // engine label Y
+
+  const lc=lP>=30?G:lP>0?AM:DG;
+  const rc=rP>=30?G:rP>0?AM:DG;
+  const e1c=e1av?G:DG, e2c=e2av?G:DG;
+  const apuc=apuAv?G:DG;
+
+  /* ──────────────────────────────────────────────
+     ⑦ TOP MANIFOLD — horizontal line + 3 triangles
+     Matches photo: solid green line across top
+     with three ▲ flow direction triangles
+  ────────────────────────────────────────────── */
+  // Left segment (PACK1 to center)
+  solidLine(P1X+2,TOPY,MX-5,TOPY,lc,2.5);
+  // Right segment (center to PACK2)
+  solidLine(MX+5,TOPY,P2X-2,TOPY,rc,2.5);
+
+  // Three ▲ triangles on top manifold (photo positions)
+  triUp(P1X+55,TOPY,lP>0?G:DG);   // left triangle
+  triUp(MX,TOPY,lP>0||rP>0?G:DG); // ⑦ center triangle
+  triUp(P2X-55,TOPY,rP>0?G:DG);   // right triangle
+
+  /* ──────────────────────────────────────────────
+     ② RAM AIR CIRCLE (center, just below top line)
+     Three visual states (FCOM accurate):
+     - OFF (not commanded): dim green circle, static
+     - COMMANDED but INHIBITED (cabin still pressurized by a pack):
+       amber circle, static, no flow — valve physically held shut
+     - OPEN (commanded AND cabin depressurized): bright white/amber
+       circle with animated dashed flow line feeding into the duct
+  ────────────────────────────────────────────── */
+  const RAX=MX, RAY=TOPY+55;
+  const ramCol = V.ramOpen ? '#eeffee' : V.ramCmd ? AM : (G+'66');
+  cx.strokeStyle=ramCol; cx.lineWidth=2; cx.setLineDash([]);
+  cx.beginPath();cx.arc(RAX,RAY,18,0,Math.PI*2);cx.stroke();
+  // Minus sign inside (photo shows ─ inside circle) — or flow dashes if open
+  if(V.ramOpen){
+    cx.setLineDash([4,3]); cx.lineDashOffset=-(frameN*.7)%7;
+    cx.beginPath();cx.moveTo(RAX-11,RAY);cx.lineTo(RAX+11,RAY);cx.stroke();
+    cx.setLineDash([]);
+  } else {
+    cx.beginPath();cx.moveTo(RAX-11,RAY);cx.lineTo(RAX+11,RAY);cx.stroke();
+  }
+  cx.fillStyle=ramCol;
+  cx.font='bold 8.5px Share Tech Mono';cx.textAlign='center';
+  cx.fillText('RAM',RAX,RAY+30);cx.fillText('AIR',RAX,RAY+41);
+
+  // Small status caption under the RAM AIR box
+  if(V.ramCmd && !V.ramOpen){
+    cx.fillStyle=AM;cx.font='7px Share Tech Mono';
+    cx.fillText('INHIB',RAX,RAY+51);
+  } else if(V.ramOpen){
+    cx.fillStyle='#eeffee';cx.font='7px Share Tech Mono';
+    cx.fillText('OPEN',RAX,RAY+51);
+    // Animated supply arrow feeding down toward the manifold
+    cx.strokeStyle='#eeffeecc';cx.lineWidth=1.6;
+    cx.setLineDash([3,3]);cx.lineDashOffset=-(frameN*.9)%6;
+    cx.beginPath();cx.moveTo(RAX,RAY+18);cx.lineTo(RAX,RAY+58);cx.stroke();
+    cx.setLineDash([]);
+    cx.fillStyle='#eeffeecc';
+    cx.beginPath();cx.moveTo(RAX,RAY+64);cx.lineTo(RAX-5,RAY+56);cx.lineTo(RAX+5,RAY+56);
+    cx.closePath();cx.fill();
+  }
+
+  az(RAX,RAY,50,66,'RAM AIR',
+    `Command: ${V.ramCmd?'SELECTED':'OFF'}\nValve: ${V.ramOpen?'OPEN — supplying fresh air':V.ramCmd?'INHIBITED (cabin pressurized)':'CLOSED'}\n`+
+    `FCOM: Emergency/backup ventilation, bypasses packs.\nPhysically interlocked — cannot open while cabin\nstill holds pressure differential from an active pack.\nGuarded pushbutton on overhead panel.`);
+
+  /* ──────────────────────────────────────────────
+     PACK 1 UNIT (left trapezoid)  ①③④⑤
+     Photo shows trapezoidal box with:
+     - ① small temp top-left (12°C green)
+     - ③ C label left side
+     - H label right side
+     - ④ large temp center (179°C green)
+     - ⑤ LO label left, HI label right (at bottom)
+  ────────────────────────────────────────────── */
+  drawPackUnit(P1X, PACKY, pack1On, lP, p1cold, p1hot, 'PACK 1', FLOW_MODES[flowIdx]);
+  drawPackUnit(P2X, PACKY, pack2On, rP, p2cold, p2hot, 'PACK 2', FLOW_MODES[flowIdx]);
+
+  /* ──────────────────────────────────────────────
+     ⑥ PACK OUTLET VALVE (circle below each pack)
+     Photo: small circle directly below pack trapezoid
+  ────────────────────────────────────────────── */
+  const POV1Y=PACKY+67, POV2Y=PACKY+67;
+  drawCircleValve(P1X,POV1Y,pack1On,pack1On?G:DG,12);
+  drawCircleValve(P2X,POV2Y,pack2On,pack2On?G:DG,12);
+
+  /* ──────────────────────────────────────────────
+     VERTICAL PIPES connecting pack to manifolds
+     Top: pack top → top manifold
+     Bottom: pack bottom valve → cross-duct
+  ────────────────────────────────────────────── */
+  animLine(P1X,TOPY+2,P1X,PACKY-69,lc,lP>0);
+  animLine(P1X,POV1Y+12,P1X,DUCTY,lc,lP>0);
+  animLine(P2X,TOPY+2,P2X,PACKY-69,rc,rP>0);
+  animLine(P2X,POV2Y+12,P2X,DUCTY,rc,rP>0);
+
+  /* ──────────────────────────────────────────────
+     ⑮⑯ LEFT BRANCH CIRCLES on cross-duct
+     Photo: two small circles to the left of center
+     on the horizontal cross-duct line
+  ────────────────────────────────────────────── */
+  const CV15X=P1X+55, CV16X=P1X+90;
+  // Horizontal duct left of center
+  animLine(P1X,DUCTY,MX-20,DUCTY,lc,lP>0);
+  // Right of center
+  animLine(MX+20,DUCTY,P2X,DUCTY,rc,rP>0);
+
+  drawCircleValve(CV15X,DUCTY,lP>0,lP>0?G:DG,10); // ⑮
+  drawCircleValve(CV16X,DUCTY,lP>0,lP>0?G:DG,10); // ⑯
+  // Right side equivalents
+  drawCircleValve(P2X-55,DUCTY,rP>0,rP>0?G:DG,10);
+  drawCircleValve(P2X-90,DUCTY,rP>0,rP>0?G:DG,10);
+
+  /* ──────────────────────────────────────────────
+     ⑬ X-BLEED CIRCLE VALVE (right of center)
+     Photo: large circle to right of ⑭ center node
+     ⑭ center node = small circle at duct midpoint
+  ────────────────────────────────────────────── */
+  // ⑭ Center node (small circle)
+  const CN14X=MX-45, CN13X=MX+45;
+  cx.strokeStyle=lP>0||rP>0?G:DG;cx.lineWidth=2;cx.setLineDash([]);
+  cx.beginPath();cx.arc(CN14X,DUCTY,8,0,Math.PI*2);cx.stroke();
+  // Label ⑭
+  cx.fillStyle='#445';cx.font='7px Share Tech Mono';cx.textAlign='center';
+
+  // ⑬ X-bleed valve
+  drawXbleedValve(CN13X,DUCTY,xbOpen,B.xbleed);
+
+  /* ──────────────────────────────────────────────
+     ⑫ APU VALVE CIRCLE (below center, above APU label)
+     Photo: circle at center-bottom area
+  ────────────────────────────────────────────── */
+  const APUVY=DUCTY+62;
+  animLine(MX,DUCTY+8,MX,APUVY-13,apuc,apuAv,2);
+  drawCircleValve(MX,APUVY,apuAv,apuc,14);
+  cx.fillStyle=apuAv?G:DG;cx.font='bold 9px Share Tech Mono';cx.textAlign='center';
+  cx.fillText('APU',MX,APUVY+28);
+  az(MX,APUVY,40,44,'APU Bleed Valve',
+    `State: ${apuAv?'OPEN':'CLOSED'}\nAPU: ${APU_S.on?'RUNNING '+Math.round(APU_S.pct)+'%':'STOPPED'}\nFCOM: Max altitude FL220 for APU bleed`);
+
+  /* ──────────────────────────────────────────────
+     ⑩⑪ PSI + °C BOXES (with amber border)
+     Photo: PSI box left of pack, °C below
+     Left side: aligned with pack 1 area
+     Right side: aligned with pack 2 area
+  ────────────────────────────────────────────── */
+  drawPsiTempBox(P1X+10,DUCTY,lP,e1duct,lP>0?G:DG);  // left ⑩⑪
+  drawPsiTempBox(P2X-10,DUCTY,rP,e2duct,rP>0?G:DG);  // right
+
+  /* ──────────────────────────────────────────────
+     ⑧ HP + IP VALVES (semicircle symbols at bottom)
+     Photo: D-shaped semicircle with vertical bar
+     ENG1: IP left, HP right (near engine)
+     ENG2: HP left, IP right (near engine)
+     NOTE: real ECAM photo order is IP─HP for ENG1,
+           HP─IP for ENG2 (symmetric from center)
+  ────────────────────────────────────────────── */
+  const V1_IPX=P1X+40, V1_HPX=P1X+80;
+  const V2_HPX=P2X-80, V2_IPX=P2X-40;
+
+  drawHpIpValve(V1_IPX,VALVY,ipV1,ipV1?G:DG,'IP');
+  drawHpIpValve(V1_HPX,VALVY,hpV1,hpV1?G:DG,'HP');
+  drawHpIpValve(V2_HPX,VALVY,hpV2,hpV2?G:DG,'HP');
+  drawHpIpValve(V2_IPX,VALVY,ipV2,ipV2?G:DG,'IP');
+
+  /* ──────────────────────────────────────────────
+     ⑨ ENGINE BLEED INLET CIRCLE VALVES
+     Photo: circle between engine number and HP/IP valves
+  ────────────────────────────────────────────── */
+  const EV1X=(V1_IPX+V1_HPX)/2;
+  const EV2X=(V2_HPX+V2_IPX)/2;
+  drawCircleValve(EV1X,VALVY+30,e1av,e1c,12);
+  drawCircleValve(EV2X,VALVY+30,e2av,e2c,12);
+
+  /* Engine bleed connection pipes */
+  animLine(EV1X,VALVY-14,EV1X,DUCTY,e1c,e1av);
+  animLine(EV1X,DUCTY,P1X,DUCTY,e1c,e1av);
+  animLine(EV2X,VALVY-14,EV2X,DUCTY,e2c,e2av);
+  animLine(EV2X,DUCTY,P2X,DUCTY,e2c,e2av);
+
+  /* ──────────────────────────────────────────────
+     ⑰ ENGINE 1 and 2 LABELS
+     Photo: "1" left of engine circle, "2" right of engine circle
+  ────────────────────────────────────────────── */
+  cx.fillStyle=e1av?G:DG;cx.font='bold 17px Share Tech Mono';cx.textAlign='right';
+  cx.fillText('1',P1X-8,VALVY+15);
+  cx.fillStyle=e2av?G:DG;cx.textAlign='left';
+  cx.fillText('2',P2X+8,VALVY+15);
+
+  /* Engine N1/N2/EGT mini display */
+  drawEngInfo(P1X-40,ENGY,1);
+  drawEngInfo(P2X+40,ENGY,2);
+
+  /* Wing Anti-Ice demand lines */
+  if(B.wai){
+    cx.strokeStyle=AM;cx.lineWidth=1.5;cx.setLineDash([5,4]);
+    cx.beginPath();cx.moveTo(P1X,TOPY);cx.lineTo(P1X-50,TOPY-20);cx.stroke();
+    cx.beginPath();cx.moveTo(P2X,TOPY);cx.lineTo(P2X+50,TOPY-20);cx.stroke();
+    cx.setLineDash([]);
+    cx.fillStyle=AM;cx.font='8px Share Tech Mono';cx.textAlign='center';
+    cx.fillText('W/S A-ICE',P1X-50,TOPY-26);
+    cx.fillText('W/S A-ICE',P2X+50,TOPY-26);
+  }
+}
+
+/* ═══════════════════════════════════════
+   DRAWING HELPERS — A320 ECAM accurate
+═══════════════════════════════════════ */
+function flowC(p){return p>=30?G:p>15?AM:p>0?RD:DG;}
+
+function solidLine(x1,y1,x2,y2,col,lw=2.5){
+  cx.strokeStyle=col;cx.lineWidth=lw;cx.setLineDash([]);
+  cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();
+}
+
+function animLine(x1,y1,x2,y2,col,flowing,lw=2.5){
+  cx.strokeStyle=col;cx.lineWidth=lw;
+  if(flowing&&col!==DG){
+    cx.setLineDash([11,6]);
+    cx.lineDashOffset=-(frameN*.85)%17;
+  } else cx.setLineDash([]);
+  cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();
+  cx.setLineDash([]);
+}
+
+/* ▲ upward triangle */
+function triUp(tx,ty,col){
+  cx.fillStyle=col;
+  cx.beginPath();cx.moveTo(tx,ty-9);cx.lineTo(tx-7,ty+5);cx.lineTo(tx+7,ty+5);
+  cx.closePath();cx.fill();
+}
+
+/* Circle valve — half-filled = open, horizontal line = closed */
+function drawCircleValve(vx,vy,open,col,r=13){
+  cx.strokeStyle=open?col:col;cx.lineWidth=2;cx.setLineDash([]);
+  cx.beginPath();cx.arc(vx,vy,r,0,Math.PI*2);cx.stroke();
+  if(open){
+    cx.fillStyle=col;
+    cx.beginPath();cx.moveTo(vx,vy-r+1);
+    cx.arc(vx,vy,r-1.5,Math.PI*1.5,Math.PI*0.5,false);
+    cx.closePath();cx.fill();
+  } else {
+    cx.strokeStyle=RD;
+    cx.beginPath();cx.moveTo(vx-r+2,vy);cx.lineTo(vx+r-2,vy);cx.stroke();
+  }
+}
+
+/* HP/IP valve — D-shape semicircle matching photo ⑧ */
+function drawHpIpValve(vx,vy,open,col,lbl){
+  const r=14;
+  cx.strokeStyle=open?col:DG;cx.lineWidth=2;cx.setLineDash([]);
+  // Vertical bar (left side)
+  cx.beginPath();cx.moveTo(vx,vy-r);cx.lineTo(vx,vy+r);cx.stroke();
+  // Right half circle
+  cx.beginPath();cx.arc(vx,vy,r,Math.PI*1.5,Math.PI*0.5,false);cx.stroke();
+  // Center tick (open indicator)
+  if(open){
+    cx.beginPath();cx.moveTo(vx,vy);cx.lineTo(vx+r-2,vy);cx.stroke();
+  }
+  // Label
+  cx.fillStyle=open?col:DG;cx.font='bold 9px Share Tech Mono';cx.textAlign='center';
+  cx.fillText(lbl,vx,vy+r+14);
+  az(vx,vy,36,36,`${lbl} Valve`,
+    `State: ${open?'OPEN':'CLOSED'}\n`+
+    `${lbl==='HP'?'High Pressure stage\nOpens at N2 > 70%\n(climb/takeoff power)':
+    'Intermediate Pressure\nOpens at N2 < 70%\n(normal/idle operation)'}`);
+}
+
+/* X-bleed circle valve ⑬ */
+function drawXbleedValve(vx,vy,open,mode){
+  const col=mode==='SHUT'?RD:open?G:AM;
+  cx.strokeStyle=col;cx.lineWidth=2.5;cx.setLineDash([]);
+  cx.beginPath();cx.arc(vx,vy,17,0,Math.PI*2);cx.stroke();
+  if(open){
+    cx.fillStyle=col;
+    cx.beginPath();cx.moveTo(vx,vy-15);
+    cx.arc(vx,vy,15,Math.PI*1.5,Math.PI*0.5,false);cx.closePath();cx.fill();
+  } else {
+    cx.strokeStyle=RD;
+    cx.beginPath();cx.moveTo(vx-13,vy);cx.lineTo(vx+13,vy);cx.stroke();
+  }
+  cx.fillStyle=col;cx.font='8px Share Tech Mono';cx.textAlign='center';
+  cx.fillText(mode,vx,vy+30);
+  az(vx,vy,46,42,'X-BLEED Valve',
+    `Mode: ${mode}\nState: ${open?'OPEN':'CLOSED'}\n`+
+    `SHUT: Always closed\nAUTO: Opens single-eng/APU\nOPEN: Always open`);
+}
+
+/* Pack unit trapezoid — matched to real ECAM photo */
+/* Pack unit trapezoid — enlarged & bolder numerals for legibility */
+function drawPackUnit(px,py,on,inPsi,outTmp,hotTmp,name,flowMode){
+  const col=on?G:DG;
+  // Trapezoid (wider at top, narrower at bottom — photo shape)
+  const TW=96,BW=68,H=112;
+
+  // Solid dark backdrop behind the whole pack (masks any lines that
+  // might otherwise cross behind and clutter the numbers)
+  cx.fillStyle='#010804';
+  cx.beginPath();
+  cx.moveTo(px-TW/2-4,py-H/2-4);
+  cx.lineTo(px+TW/2+4,py-H/2-4);
+  cx.lineTo(px+BW/2+4,py+H/2+4);
+  cx.lineTo(px-BW/2-4,py+H/2+4);
+  cx.closePath();cx.fill();
+
+  cx.strokeStyle=col;cx.lineWidth=2.2;cx.setLineDash([]);
+  cx.beginPath();
+  cx.moveTo(px-TW/2,py-H/2);  // top-left
+  cx.lineTo(px+TW/2,py-H/2);  // top-right
+  cx.lineTo(px+BW/2,py+H/2);  // bottom-right
+  cx.lineTo(px-BW/2,py+H/2);  // bottom-left
+  cx.closePath();cx.stroke();
+
+  // ① Outlet temp (top of pack — centered, clear of slanted edges)
+  const oc=outTmp>50?AM:outTmp<0?CY:on?G:DG;
+  cx.fillStyle=oc;cx.font='bold 18px Share Tech Mono';cx.textAlign='right';
+  cx.fillText(on?(outTmp>=0?'+':'')+Math.round(outTmp):'--',px-6,py-H/2+30);
+  cx.fillStyle=CY;cx.font='bold 11px Share Tech Mono';cx.textAlign='left';
+  cx.fillText('°C',px,py-H/2+30);
+
+  // ③ C / H labels (left/right side of pack, cyan, bolder)
+  cx.fillStyle=CY;cx.font='bold 11px Share Tech Mono';cx.textAlign='center';
+  cx.fillText('C',px-TW/2+15,py+7);
+  cx.fillText('H',px+TW/2-15,py+7);
+
+  // Compressor symbol: two C-curves facing each other
+  cx.strokeStyle=col;cx.lineWidth=1.8;
+  // Left curve (cold side) opens to the right
+  cx.beginPath();cx.arc(px-16,py,24,Math.PI*.62,Math.PI*1.38,false);cx.stroke();
+  // Right curve (hot side) opens to the left
+  cx.beginPath();cx.arc(px+16,py,24,Math.PI*1.62,Math.PI*.38,false);cx.stroke();
+  // Center vertical divider line
+  cx.beginPath();cx.moveTo(px,py-26);cx.lineTo(px,py+26);cx.stroke();
+
+  // ④ Compressor hot side temp — LARGE bold number, own dark backing
+  cx.fillStyle='#010804';
+  cx.fillRect(px-30,py+2,60,20);
+  const hc=hotTmp>220?AM:on?G:DG;
+  cx.fillStyle=hc;cx.font='bold 22px Share Tech Mono';cx.textAlign='center';
+  cx.fillText(on?Math.round(hotTmp):'---',px-6,py+17);
+  cx.fillStyle=CY;cx.font='bold 11px Share Tech Mono';cx.textAlign='left';
+  cx.fillText('°C',px+22,py+15);
+
+  // ⑤ LO/HI labels at bottom of pack (left side), larger, with clearance
+  cx.fillStyle=col;cx.font='bold 10px Share Tech Mono';cx.textAlign='right';
+  cx.fillText('LO',px-TW/2-6,py+H/2-11);
+  cx.fillText('HI',px-TW/2-6,py+H/2+8);
+  // Right side HI label
+  cx.textAlign='left';
+  cx.fillText('HI',px+TW/2+6,py+H/2-11);
+
+  // Flow indicator dot on LO or HI
+  if(on){
+    const dotY=flowMode==='LO'?py+H/2-11:py+H/2+8;
+    cx.fillStyle=G;cx.beginPath();
+    cx.arc(px-TW/2-18,dotY-3,4.5,0,Math.PI*2);cx.fill();
+  }
+
+  // Pack name below
+  cx.fillStyle=col;cx.font='bold 11px Share Tech Mono';cx.textAlign='center';
+  cx.fillText(name,px,py+H/2+22);
+
+  az(px,py,TW+20,H+30,name,
+    `State: ${on?'RUNNING':'OFF'}\nInlet: ${Math.round(inPsi)} PSI\nOutlet: ${on?Math.round(outTmp):'--'}°C\nCompressor: ${on?Math.round(hotTmp):'--'}°C\nFlow: ${flowMode}\nFCOM: Air Cycle Machine cools bleed air`);
+}
+
+/* PSI + °C box ⑩⑪ — amber border rectangle, masked backdrop so pipes
+   passing behind can never bleed through and clutter the numerals */
+function drawPsiTempBox(bx,by,psi,temp,col){
+  const bw=58,bh=32;
+  // Solid dark backdrop — sized tightly to just the box + °C readout
+  // below it, so nearby circle valves are never covered
+  const maskHalfW=bw/2+9;
+  cx.fillStyle='#010804';
+  cx.fillRect(bx-maskHalfW, by-bh/2-6, maskHalfW*2, bh+52);
+
+  // Amber bordered PSI box
+  cx.strokeStyle=psi>0?AM:DG;cx.lineWidth=2;cx.setLineDash([]);
+  cx.strokeRect(bx-bw/2,by-bh/2,bw,bh);
+  // PSI value inside box — large bold
+  cx.fillStyle=psi>0?G:DG;cx.font='bold 19px Share Tech Mono';cx.textAlign='center';
+  cx.fillText(psi>0?Math.round(psi):'--',bx,by+7);
+  // "PSI" label directly beneath the box, own centered line (no
+  // horizontal overlap risk regardless of box position)
+  cx.fillStyle=CY;cx.font='bold 10px Share Tech Mono';cx.textAlign='center';
+  cx.fillText('PSI',bx,by+bh/2+13);
+  // °C value below PSI label — large bold
+  cx.fillStyle=temp>0?G:DG;cx.font='bold 17px Share Tech Mono';cx.textAlign='center';
+  cx.fillText(temp>0?Math.round(temp):'--',bx,by+bh/2+34);
+  cx.fillStyle=CY;cx.font='bold 10px Share Tech Mono';cx.textAlign='left';
+  cx.fillText('°C',bx+18,by+bh/2+31);
+  az(bx,by+16,bw+50,74,'Bleed Pressure & Duct Temp',
+    `Pressure: ${Math.round(psi)} PSI\nDuct temp: ${Math.round(temp)}°C\nNormal: 30-45 PSI, 150-250°C`);
+}
+
+/* Engine info below valve row — larger, easier to read */
+function drawEngInfo(ex,ey,n){
+  const e=ENG[n];
+  const col=e.on?G:DG;
+  cx.font='bold 9.5px Share Tech Mono';cx.textAlign='center';
+  if(e.on){
+    cx.fillStyle=col;cx.fillText(`N1 ${e.n1.toFixed(1)}%`,ex,ey);
+    cx.fillText(`N2 ${e.n2.toFixed(1)}%`,ex,ey+15);
+    const ec=e.egt>580?RD:e.egt>430?AM:G;
+    cx.fillStyle=ec;cx.fillText(`EGT ${Math.round(e.egt)}°C`,ex,ey+30);
+  } else {
+    cx.fillStyle=DG;cx.fillText('STOPPED',ex,ey+9);
+  }
+}
+
+
+/* ── HOVER ZONES ── */
+const tip=document.getElementById('tip');
+cv.addEventListener('mousemove',ev=>{
+  const r=cv.getBoundingClientRect();
+  const sc=EW/r.width;
+  const mx=(ev.clientX-r.left)*sc,my=(ev.clientY-r.top)*sc;
+  const z=ZS.find(z=>mx>=z.x&&mx<=z.x+z.w&&my>=z.y&&my<=z.y+z.h);
+  if(z){tip.innerHTML=`<b>${z.t}</b>${z.d.replace(/\n/g,'<br>')}`;
+    tip.style.left=(ev.clientX+12)+'px';tip.style.top=(ev.clientY-8)+'px';
+    tip.classList.add('show');}
+  else tip.classList.remove('show');
+});
+cv.addEventListener('mouseleave',()=>tip.classList.remove('show'));
+
+/* ── CLOCK ── */
+setInterval(()=>{
+  const n=new Date();
+  document.getElementById('ck').textContent=
+    n.getUTCHours().toString().padStart(2,'0')+' H '+
+    n.getUTCMinutes().toString().padStart(2,'0');
+  updWarn();
+},1000);
+
+/* ── KEYBOARD SHORTCUTS ── */
+document.addEventListener('keydown',e=>{
+  const k=e.key;
+  if(k==='1') toggleEng(1);
+  if(k==='2') toggleEng(2);
+  if(k==='a'||k==='A') toggleAPU();
+  if(k==='x'||k==='X') cycleXB();
+  if(k==='w'||k==='W'){B.wai=!B.wai;updWarn();}
+  if(k==='r'||k==='R'){ ramGuardLifted=true; toggleRam(); }
+  if(k==='f'||k==='F') cycleFlow(0);
+});
+
+/* ── SPLASH ── */
+function splash(){
+  if(!document.getElementById('_rpl')){
+    const s=document.createElement('style');s.id='_rpl';
+    s.textContent='@keyframes rpl{to{width:36px;height:36px;opacity:0}}';
+    document.head.appendChild(s);}
+  const d=document.createElement('div');
+  Object.assign(d.style,{position:'fixed',left:'50%',top:'50%',width:'0',height:'0',
+    border:'2px solid #00ff88',borderRadius:'50%',pointerEvents:'none',zIndex:'999',
+    transform:'translate(-50%,-50%)',animation:'rpl .3s ease-out forwards'});
+  document.body.appendChild(d);setTimeout(()=>d.remove(),380);
+}
+
+/* ── INIT: sync pushbutton indicators to default state ── */
+['e1bleed','e2bleed','apubleed','pack1','pack2','hotair','ramair','gndhp','wai','eai1','eai2']
+  .forEach(id=>updPB(id));
+updWarn();
+
+/* ── MAIN LOOP ── */
+function loop(){drawWires();drawECAM();requestAnimationFrame(loop);}
+loop();
+</script>
+</body>
+</html>

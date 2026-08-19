@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ข้อสอบ A320 — ระบบลม / ปรับอากาศ (Pneumatic — Bleed Air)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --navy: #1B2A4A;
+    --navy-2: #223a63;
+    --gold: #C9A227;
+    --cream: #F7F4EC;
+    --paper: #FBF9F2;
+    --line: #ddd6c4;
+    --ink: #2a2620;
+    --muted: #8a8570;
+    --teal: #2E6F6E;
+    --red: #A63D40;
+	--bule:#6FA8DC;    
+	--accent: var(--bule);
+    --accent-rgb: 111,168,220;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Work Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+  }
+  h1, h2, .serif { font-family: 'Fraunces', serif; }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 60%, var(--navy) 100%);
+    color: var(--cream);
+    padding: 2.75rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-inner { max-width: 46rem; margin: 0 auto; }
+  .brand { display: flex; align-items: center; gap: .5rem; color: var(--gold);
+    text-transform: uppercase; letter-spacing: .3em; font-size: .72rem; margin-bottom: 1.4rem; }
+  .hero h1 { font-size: 1.9rem; line-height: 1.3; margin: 0 0 .75rem; font-weight: 600; }
+  .hero p { color: #9fb0cc; max-width: 34rem; font-size: .88rem; line-height: 1.7; margin: 0; }
+  .hero .chip {
+    display:inline-flex; align-items:center; gap:.4rem; margin-top:1.1rem;
+    background: rgba(var(--accent-rgb), .18); border: 1px solid rgba(var(--accent-rgb), .5);
+    color: var(--cream); font-size: .75rem; padding: .3rem .8rem; border-radius: 999px;
+  }
+
+  /* ---------- Body wrap ---------- */
+  .wrap { max-width: 46rem; margin: 0 auto; padding: 2rem 2rem 4rem; }
+
+  .status-card {
+    display:flex; align-items:center; justify-content:space-between; gap:1rem;
+    border: 1px solid var(--line); background: var(--paper); border-radius: 1rem;
+    padding: 1.1rem 1.3rem; margin-bottom: 1.5rem;
+  }
+  .status-card .lbl { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .status-card .cnt { font-family: 'Fraunces', serif; font-size: 1.5rem; margin-top: .1rem; color: var(--navy); }
+  .track { width: 9rem; height: .5rem; background: #ECE6D6; border-radius: 999px; overflow: hidden; flex-shrink:0; }
+  .track-fill { height: 100%; width: 0%; background: var(--accent); transition: width .25s; border-radius:999px; }
+
+  .qcard {
+    border: 1px solid var(--line); background: var(--paper); border-radius: 1rem;
+    padding: 1.35rem 1.5rem; margin-bottom: 1rem; transition: border-color .15s, box-shadow .15s;
+  }
+  .qcard.answered { border-color: rgba(var(--accent-rgb), .55); box-shadow: 0 2px 10px rgba(0,0,0,.03); }
+  .qnum { font-size: .68rem; text-transform: uppercase; letter-spacing: .12em; color: var(--accent); font-weight: 600; margin-bottom: .5rem; }
+  .qtext { font-family: 'Fraunces', serif; font-size: 1.05rem; line-height: 1.55; color: var(--ink); margin-bottom: .9rem; font-weight: 500; }
+  .opts { display: flex; flex-direction: column; gap: .55rem; }
+  .opt {
+    display: flex; align-items: flex-start; gap: .65rem; padding: .7rem .9rem;
+    border: 1px solid var(--line); border-radius: .6rem; cursor: pointer;
+    background: #fff; transition: border-color .12s, background .12s;
+    font-size: .88rem; line-height: 1.55; color: var(--ink);
+  }
+  .opt:hover { border-color: rgba(var(--accent-rgb), .6); }
+  .opt input { margin-top: .2rem; accent-color: var(--accent); flex-shrink: 0; }
+  .opt.picked { border-color: var(--accent); background: rgba(var(--accent-rgb), .07); }
+  .opt.correct { border-color: var(--teal) !important; background: rgba(46,111,110,.12) !important; }
+  .opt.wrong { border-color: var(--red) !important; background: rgba(166,61,64,.1) !important; }
+  .opt .lbl { color: var(--muted); font-weight: 600; margin-right: .1rem; }
+
+  .sec-footer {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    margin: 1.5rem 0 1rem; flex-wrap: wrap;
+  }
+  .hint { font-size: .78rem; color: var(--muted); }
+  .btn-primary {
+    padding: .8rem 1.8rem; border: none; border-radius: .6rem; background: var(--navy);
+    color: var(--cream); font-size: .88rem; cursor: pointer; font-family: inherit; font-weight: 500;
+    transition: background .15s, transform .1s;
+  }
+  .btn-primary:hover:not(:disabled) { background: var(--navy-2); }
+  .btn-primary:disabled { opacity: .45; cursor: default; }
+
+  .msg-card {
+    display: none; border: 1px solid var(--accent); border-radius: 1rem;
+    background: var(--paper); padding: 1.75rem 1.6rem; margin: 0 0 1.5rem; text-align: center;
+  }
+  .msg-card.show { display: block; }
+  .msg-card .score { font-family: 'Fraunces', serif; font-size: 2.6rem; color: var(--navy); }
+  .msg-card .score-lbl { font-size: .72rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin-top: .1rem; }
+  .msg-card .txt { margin-top: .8rem; font-size: .9rem; color: var(--ink); }
+
+  footer.foot { max-width: 46rem; margin: 0 auto; text-align: center; color: var(--muted); font-size: .72rem; letter-spacing: .02em; padding: 0 2rem 2rem; }
+
+  .user-banner {
+    display: none; align-items: center; gap: .5rem; max-width: 46rem; margin: 0 auto -1rem;
+    padding: .65rem 1rem; border-radius: .6rem; background: rgba(201,162,39,.14);
+    border: 1px solid rgba(201,162,39,.4); color: var(--navy); font-size: .82rem;
+  }
+  .back-link {
+    display: inline-block; margin-top: 1rem; font-size: .82rem; color: var(--navy);
+    text-decoration: none; border-bottom: 1px dashed var(--navy);
+  }
+  .back-link:hover { color: var(--teal); border-color: var(--teal); }
+  .attempt-info {
+    margin-top: .9rem; padding-top: .8rem; border-top: 1px dashed var(--line);
+    font-size: .8rem; color: var(--muted); line-height: 1.7;
+  }
+  .attempt-info strong { color: var(--navy); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="brand"></div>
+    <h1 class="serif">ระบบลม / ปรับอากาศ (Pneumatic — Bleed Air)</h1>
+    <p>ATA 36 · Pack · X-BLEED · RAM AIR — ข้อสอบชุดนี้มี 20 ข้อ อิงเนื้อหาจากหน้าจำลอง ECAM ของระบบนี้โดยเฉพาะ ตอบให้ครบทุกข้อแล้วกด "ส่งคำตอบ" เพื่อดูคะแนนและเฉลย</p>
+    <div class="chip">แบบทดสอบ 20 ข้อ</div>
+  </div>
+</div>
+
+
+<div class="user-banner" id="quiz-user-banner"></div>
+
+<div class="wrap">
+  <div class="status-card">
+    <div>
+      <div class="lbl">ความคืบหน้า</div>
+      <div class="cnt"><span id="cnt">0</span> / 20 ข้อ</div>
+    </div>
+    <div class="track"><div class="track-fill" id="prog"></div></div>
+  </div>
+
+  <div id="qlist"></div>
+
+  <div class="msg-card" id="result">
+    <div class="score" id="score">0 / 20</div>
+    <div class="score-lbl">คะแนนที่ได้</div>
+    <div class="txt" id="msg"></div>
+    <div class="attempt-info" id="attemptInfo"></div>
+    <a class="back-link" href="../../ata.html#bleed">← กลับสู่หน้าเรียน</a>
+  </div>
+
+  <div class="sec-footer">
+    <div class="hint" id="hint">ตอบให้ครบทุกข้อก่อนส่งคำตอบ</div>
+    <button class="btn-primary" id="submitBtn" onclick="submitQuiz()" disabled>ส่งคำตอบ</button>
+  </div>
+</div>
+
+<footer class="foot">อิงเนื้อหาจากไฟล์จำลอง ECAM ระบบ ระบบลม / ปรับอากาศ (Pneumatic — Bleed Air) · สำหรับการฝึกฝนเท่านั้น ไม่ใช่เอกสารทางการของสายการบิน</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../config.js"></script>
+<script>const QUIZ_SUBJECT = "ระบบลม/ปรับอากาศ (Bleed Air)";</script>
+<script src="../../quiz-common.js"></script>
+
+<script>
+const QUESTIONS = [{"q": "ระบบ Bleed Air (ลมแรงดันสูงจากเครื่องยนต์) อยู่ใน ATA chapter ใด", "o": ["ATA 21", "ATA 32", "ATA 36", "ATA 49"], "a": 2}, {"q": "ในระหว่างการ start เครื่องยนต์ วาล์ว bleed จะอยู่ในสถานะใด", "o": ["เปิดเต็มที่", "ปิด", "เปิดครึ่งหนึ่ง", "ไม่เกี่ยวข้องกับการ start"], "a": 1}, {"q": "วาล์ว bleed จะเปิดเมื่อ N2 ของเครื่องยนต์ใกล้ค่า idle ซึ่งประมาณเท่าใด", "o": ["~30%", "~50%", "~58%", "~70%"], "a": 2}, {"q": "PRSOV (Pressure Regulating Shut-Off Valve) ควบคุมความดัน bleed ให้คงที่ประมาณเท่าใด", "o": ["18-20 PSI", "42-46 PSI", "100-120 PSI", "200 PSI"], "a": 1}, {"q": "Pack (เครื่องปรับอากาศ) ต้องการความดัน bleed ขั้นต่ำเท่าใดจึงจะทำงานได้", "o": ["~5 PSI", "~18 PSI", "~30 PSI", "~45 PSI"], "a": 1}, {"q": "วาล์ว X-BLEED มีกี่ตำแหน่งการทำงาน", "o": ["2 (OPEN/SHUT)", "3 (SHUT/AUTO/OPEN)", "4", "5"], "a": 1}, {"q": "ในโหมด AUTO วาล์ว X-BLEED จะเปิดเมื่อใด", "o": ["เมื่อมีแหล่งจ่าย bleed จากเครื่องยนต์เพียงแหล่งเดียว", "เมื่อทั้งสองเครื่องยนต์จ่าย bleed ตามปกติ", "เมื่อ pack ทั้งสองปิด", "ตลอดเวลาที่บินอยู่"], "a": 0}, {"q": "APU สามารถจ่าย bleed air ได้สูงสุดที่ระดับความสูงเท่าใด", "o": ["FL100", "FL150", "FL220", "FL350"], "a": 2}, {"q": "วาล์ว RAM AIR ทำหน้าที่อะไร", "o": ["เพิ่มความดัน bleed ให้เครื่องยนต์", "จ่ายอากาศระบายอากาศฉุกเฉิน/สำรองจากภายนอกโดยตรง บายพาส pack", "ควบคุมอุณหภูมิห้องนักบิน", "ป้องกันน้ำแข็งที่ปีก"], "a": 1}, {"q": "วาล์ว RAM AIR จะไม่สามารถเปิดได้เมื่อใด", "o": ["เมื่อเครื่องยนต์ดับ", "เมื่อห้องโดยสารยังมีความดันแตกต่าง (pressurized) อยู่", "เมื่อบินสูงกว่า FL350", "เมื่อ APU ทำงาน"], "a": 1}, {"q": "ก่อนกดปุ่ม RAM AIR นักบินต้องทำอะไรก่อน", "o": ["ปิด pack ทั้งสอง", "ยก guard (ฝาครอบนิรภัย) ขึ้นก่อน", "ปิดเครื่องยนต์", "เปิด X-BLEED"], "a": 1}, {"q": "รถเข็นแรงดันสูงภาคพื้น (Ground HP cart) จ่ายความดันประมาณเท่าใดเมื่อเลือกใช้", "o": ["30 PSI", "45 PSI", "60 PSI", "80 PSI"], "a": 1}, {"q": "เมื่อ APU bleed ทำงาน จะจ่ายความดันประมาณเท่าใด", "o": ["20 PSI", "40 PSI", "60 PSI", "100 PSI"], "a": 1}, {"q": "ACM (Air Cycle Machine) มีหน้าที่หลักคืออะไร", "o": ["เพิ่มความดัน bleed air", "ทำความเย็นให้กับ bleed air", "กรองฝุ่นในอากาศ", "วัดอุณหภูมิห้องโดยสาร"], "a": 1}, {"q": "ระบบป้องกันน้ำแข็งที่ปีก (Wing Anti-Ice) ใช้แหล่งอากาศจากที่ใด", "o": ["RAM air", "Bleed air", "APU cooling air", "Pack cold air"], "a": 1}, {"q": "วาล์ว Hot air (Trim air) มีหน้าที่อะไร", "o": ["เปิด-ปิดระบบ bleed ทั้งหมด", "ผสมอากาศร้อนกับอากาศเย็นจาก pack เพื่อควบคุมอุณหภูมิห้องโดยสาร", "ควบคุมความดัน APU", "ป้องกันน้ำแข็งเครื่องยนต์"], "a": 1}, {"q": "หากอุณหภูมิใน duct bleed สูงเกินค่าที่กำหนด (เช่น 250°C) จะเกิดสถานการณ์ใด", "o": ["ไม่มีผลใดๆ", "เกิดคำเตือน BLEED DUCT HOT", "วาล์ว X-BLEED เปิดอัตโนมัติ", "pack ปิดถาวร"], "a": 1}, {"q": "วาล์วความดันสูง (HP stage valve) ของเครื่องยนต์จะเปิดเมื่อ N2 มีค่าอย่างน้อยเท่าใด", "o": ["50%", "58%", "70%", "90%"], "a": 2}, {"q": "หากเปิด Ground HP cart ขณะที่เครื่องยนต์กำลังทำงานอยู่ จะเกิดคำเตือนใด", "o": ["NO BLEED SOURCE", "GND HP ON — ENGINE RUNNING", "PACK 1 LO PR", "WING ANTI ICE ON"], "a": 1}, {"q": "หากทั้ง Pack 1 และ Pack 2 ถูกปิด จะเกิดคำเตือนใด", "o": ["BOTH PACKS OFF", "RAM AIR ON", "APU BLEED — APU NOT RUNNING", "ไม่มีคำเตือนใดๆ"], "a": 0}];
+
+const answers = new Array(QUESTIONS.length).fill(null);
+let submitted = false;
+
+const qlist = document.getElementById('qlist');
+QUESTIONS.forEach((qq,i)=>{
+  const card = document.createElement('div');
+  card.className='qcard';
+  card.id='qcard-'+i;
+  card.innerHTML = `
+    <div class="qnum">ข้อ ${i+1} / ${QUESTIONS.length}</div>
+    <div class="qtext">${qq.q}</div>
+    <div class="opts">
+      ${qq.o.map((opt,oi)=>`
+        <label class="opt" id="opt-${i}-${oi}">
+          <input type="radio" name="q${i}" value="${oi}" onchange="pick(${i},${oi})">
+          <span><span class="lbl">${String.fromCharCode(65+oi)}.</span> ${opt}</span>
+        </label>
+      `).join('')}
+    </div>
+  `;
+  qlist.appendChild(card);
+});
+
+function pick(qi, oi){
+  if(submitted) return;
+  answers[qi] = oi;
+  QUESTIONS[qi].o.forEach((_,idx)=>{
+    document.getElementById(`opt-${qi}-${idx}`).classList.toggle('picked', idx===oi);
+  });
+  document.getElementById('qcard-'+qi).classList.add('answered');
+
+  const answeredCount = answers.filter(a=>a!==null).length;
+  document.getElementById('cnt').textContent = answeredCount;
+  document.getElementById('prog').style.width = (answeredCount/QUESTIONS.length*100)+'%';
+  document.getElementById('submitBtn').disabled = answeredCount < QUESTIONS.length;
+  document.getElementById('hint').textContent =
+    answeredCount < QUESTIONS.length
+      ? `ตอบให้ครบทุกข้อก่อนส่งคำตอบ (เหลืออีก ${QUESTIONS.length-answeredCount} ข้อ)`
+      : 'ตอบครบทุกข้อแล้ว พร้อมส่งคำตอบ';
+}
+
+async function submitQuiz(){
+  if(answers.some(a=>a===null)) return;
+  let score = 0;
+  QUESTIONS.forEach((qq,i)=>{
+    const picked = answers[i];
+    const correct = qq.a;
+    qq.o.forEach((_,oi)=>{
+      const el = document.getElementById(`opt-${i}-${oi}`);
+      el.classList.remove('picked');
+      if(oi===correct) el.classList.add('correct');
+      else if(oi===picked) el.classList.add('wrong');
+    });
+    document.querySelectorAll(`input[name="q${i}"]`).forEach(inp=>inp.disabled=true);
+    if(picked===correct) score++;
+  });
+
+  submitted = true;
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('submitBtn').textContent = 'กำลังบันทึกผล...';
+  document.getElementById('hint').textContent = 'ดูเฉลย: กรอบเขียวอมฟ้า (teal) = คำตอบที่ถูกต้อง, กรอบแดง = คำตอบที่เลือกผิด';
+
+  const pct = Math.round(score/QUESTIONS.length*100);
+  document.getElementById('score').textContent = `${score} / ${QUESTIONS.length}`;
+  let msg;
+  if(pct===100) msg = 'ยอดเยี่ยม! ตอบถูกทุกข้อ เข้าใจระบบนี้แน่นมาก';
+  else if(pct>=80) msg = 'ดีมาก เข้าใจระบบนี้ในระดับสูง ลองทบทวนข้อที่ผิดอีกครั้ง';
+  else if(pct>=60) msg = 'ใช้ได้ แต่ควรทบทวนรายละเอียดเพิ่มเติมในบางจุด';
+  else msg = 'ควรกลับไปทบทวนเนื้อหาของระบบนี้อีกครั้งก่อนสอบจริง';
+  document.getElementById('msg').textContent = msg;
+  document.getElementById('result').classList.add('show');
+  document.getElementById('result').scrollIntoView({behavior:'smooth', block:'center'});
+
+  const meta = await (window.saveQuizAttempt ? window.saveQuizAttempt(score, QUESTIONS.length) : Promise.resolve(null));
+  document.getElementById('submitBtn').textContent = 'ส่งคำตอบแล้ว';
+  const infoEl = document.getElementById('attemptInfo');
+  if (meta) {
+    infoEl.innerHTML = meta.saved
+      ? `เริ่มทำ <strong>${meta.startedAtText}</strong> · ทำเสร็จ <strong>${meta.finishedAtText}</strong> · ทำครั้งที่ <strong>${meta.attemptNo}</strong><br>บันทึกผลลงระบบเรียบร้อยแล้ว`
+      : `เริ่มทำ <strong>${meta.startedAtText}</strong> · ทำเสร็จ <strong>${meta.finishedAtText}</strong><br>(ไม่ได้บันทึกคะแนนลงระบบ — กรุณาเข้าสู่ระบบด้วยบัญชีนักศึกษา)`;
+  }
+}
+</script>
+</body>
+</html>

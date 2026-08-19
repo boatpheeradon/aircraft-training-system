@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>A320 WHEEL SD</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:#0e0e0e;display:flex;flex-direction:column;align-items:center;
+  min-height:100vh;padding:12px 8px 30px;font-family:'Share Tech Mono',monospace;
+  gap:8px;user-select:none;
+}
+
+/* ─── OVERHEAD STRIP ─── */
+.strip{
+  width:900px;background:linear-gradient(175deg,#3d4c5c,#2b3846);
+  border:2px solid #394856;border-radius:5px;
+  padding:10px 20px;display:flex;align-items:center;gap:18px;
+  box-shadow:0 2px 14px rgba(0,0,0,.9);
+}
+.slbl{font-size:7.5px;color:#8899aa;letter-spacing:2.5px;text-align:center;line-height:1.4;}
+
+/* L/G Lever — realistic gated lever mechanism */
+.lg-gate-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.lg-arrow{width:0;height:0;}
+.lg-track2{width:22px;height:88px;background:#050a10;border:1.5px solid #223040;
+  border-radius:4px;position:relative;cursor:pointer;box-shadow:inset 0 2px 8px rgba(0,0,0,.9);}
+.lg-track2:hover{border-color:#3a4e62;}
+.lg-handle{position:absolute;left:-9px;right:-9px;height:30px;border-radius:5px;
+  background:linear-gradient(105deg,#26282c 0%,#131416 45%,#050506 100%);
+  border:1px solid #000;box-shadow:0 3px 8px rgba(0,0,0,.85),inset 0 1px 0 rgba(255,255,255,.06);
+  transition:top .32s cubic-bezier(.4,0,.2,1);
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,.05) 3px,rgba(255,255,255,.05) 4px),
+    linear-gradient(105deg,#26282c 0%,#131416 45%,#050506 100%);
+}
+.lg-handle::after{content:'';position:absolute;left:50%;top:50%;width:6px;height:6px;
+  background:radial-gradient(circle at 35% 35%,#8a8a8a,#2a2a2a);border-radius:50%;
+  transform:translate(-50%,-50%);}
+.lgh-up{top:1px;} .lgh-dn{top:57px;}
+
+/* LDG GEAR triangle pushbuttons */
+.ldg-grp{display:flex;gap:4px;}
+.ldg-btn{width:44px;height:40px;background:linear-gradient(155deg,#141b26,#0b1118);
+  border:2px solid #b8a860;border-radius:3px;display:flex;align-items:center;justify-content:center;
+  transition:box-shadow .15s;}
+.ldg-tri{width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;
+  border-top:13px solid #16210f;transition:border-top-color .15s,filter .15s;}
+.ldg-tri.lit{border-top-color:#00ff55;filter:drop-shadow(0 0 3px #00ff55aa);}
+.ldg-tri.unsafe{border-top-color:#ff2222;filter:drop-shadow(0 0 3px #ff2222aa);}
+
+/* A/SKID rotary knob */
+.askid-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.askid-knob{width:40px;height:40px;border-radius:50%;cursor:pointer;position:relative;
+  background:radial-gradient(circle at 35% 30%,#7a7a7a,#3a3a3a 60%,#1a1a1a);
+  border:1px solid #555;box-shadow:0 3px 8px rgba(0,0,0,.8),inset 0 1px 3px rgba(255,255,255,.15);}
+.askid-knob:hover{filter:brightness(1.1);}
+.askid-ptr{position:absolute;top:50%;left:50%;width:2.5px;height:15px;background:#eee;
+  border-radius:2px;transform-origin:50% 100%;margin-left:-1.25px;margin-top:-15px;
+  transition:transform .2s;}
+.askid-grooves{position:absolute;inset:3px;border-radius:50%;
+  background:repeating-conic-gradient(from 0deg,rgba(0,0,0,.15) 0deg 2deg,transparent 2deg 12deg);}
+
+/* UNLK lights */
+.ul{width:44px;height:36px;background:#040404;border:1px solid #191919;border-radius:2px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  transition:background .12s,border-color .12s;}
+.ul-w{font-size:7.5px;font-weight:bold;transition:color .12s;}
+.ul-s{font-size:6px;color:#222232;}
+
+/* DN light */
+.dl{width:52px;height:34px;background:#040404;border:1px solid #191919;border-radius:2px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;}
+
+/* Pushbutton */
+.pb{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;}
+.pbb{background:linear-gradient(155deg,#131e2c,#0c151e);border:2px solid #c4b46a;
+  border-radius:3px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:border-color .1s;box-shadow:0 2px 8px rgba(0,0,0,.7);}
+.pbb:hover{border-color:#e0d080;}
+.pbt{font-size:6.5px;color:#8899aa;letter-spacing:1px;text-align:center;line-height:1.4;padding:2px 3px;}
+.pbi{height:12px;display:flex;align-items:center;justify-content:center;border-radius:1px;
+  margin:1px 3px 2px;font-size:7px;font-weight:bold;letter-spacing:1px;transition:all .22s;}
+.id{background:#050810;color:#0d0d0d;}
+.ion{background:#001508;color:#00ff55;}
+.iof{background:#0f0000;color:#ff2222;}
+.iam{background:#100d00;color:#ffcc00;}
+.iau{background:#000d05;color:#00cc44;}
+
+/* ACCU */
+.accu-w{display:flex;flex-direction:column;align-items:center;gap:2px;}
+
+/* HYD source */
+.hyds{display:flex;flex-direction:column;gap:3px;margin-left:auto;
+  border-left:1px solid #1a2a38;padding-left:14px;min-width:125px;}
+.hydv{font-size:10px;font-weight:bold;letter-spacing:1.5px;padding:2px 6px;border-radius:2px;
+  border:1px solid #1a2030;transition:color .3s,border-color .3s;}
+.hydp{font-size:8.5px;font-weight:bold;transition:color .3s;}
+
+/* ─── ECAM DISPLAY ─── */
+.ecam{position:relative;width:900px;border:3px solid #060606;border-radius:5px;overflow:hidden;
+  box-shadow:0 0 60px rgba(0,130,40,.04),0 0 120px rgba(0,0,0,.96);}
+.ecam::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:5;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.042) 3px,rgba(0,0,0,.042) 4px);}
+.ehdr{height:33px;background:#010703;border-bottom:1px solid #081308;
+  display:flex;align-items:center;justify-content:center;}
+.ettl{font-size:15px;font-weight:bold;color:#ddd;letter-spacing:7px;
+  text-decoration:underline;text-underline-offset:4px;}
+.ewrn{position:absolute;top:35px;left:5px;right:5px;z-index:7;
+  color:#ff5000;font-size:9px;letter-spacing:2px;text-align:center;padding:2px;
+  border:1px solid rgba(210,40,0,.22);background:rgba(170,25,0,.07);
+  pointer-events:none;transition:opacity .3s;}
+@keyframes blk{0%,100%{opacity:1}50%{opacity:.15}}
+.ewrn{animation:blk .85s infinite;}
+#cv{display:block;}
+.eftr{height:46px;background:#010703;border-top:1px solid #081308;
+  display:flex;align-items:center;padding:0 16px;gap:16px;position:relative;}
+.ef{display:flex;gap:4px;align-items:baseline;}
+.el{color:#253530;font-size:9.5px;}.ev{color:#00ff88;font-size:10.5px;font-weight:bold;}
+.eu{color:#182520;font-size:8.5px;}
+.eclk{position:absolute;left:50%;transform:translateX(-50%);color:#00ff88;font-size:10.5px;letter-spacing:4px;}
+
+/* Tooltip */
+.tip{position:fixed;background:rgba(1,4,2,.97);border:1px solid rgba(0,200,70,.15);
+  color:#aaa;padding:8px 11px;font-size:9.5px;pointer-events:none;z-index:999;
+  max-width:280px;line-height:1.7;border-radius:3px;opacity:0;transition:opacity .08s;}
+.tip.show{opacity:1;}
+.tip b{color:#00ff88;display:block;margin-bottom:3px;}
+</style>
+</head>
+<body>
+
+<!-- ═══ OVERHEAD CONTROL PANEL ═══ -->
+<div class="strip">
+
+  <!-- L/G LEVER — realistic gated mechanism (matches real hardware photo) -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+    <div class="slbl">L/G<br>LEVER</div>
+    <svg width="14" height="10" viewBox="0 0 14 10"><polyline points="1,9 7,1 13,9" fill="none" stroke="#8899aa" stroke-width="1.6"/></svg>
+    <div class="lg-track2" onclick="clickLever(event)" title="Click to toggle gear">
+      <div class="lg-handle lgh-up" id="lk"></div>
+    </div>
+    <svg width="14" height="10" viewBox="0 0 14 10"><polyline points="1,1 7,9 13,1" fill="none" stroke="#8899aa" stroke-width="1.6"/></svg>
+    <div style="font-size:6px;color:#243444;text-align:center;">GREEN<br>HYD</div>
+  </div>
+
+  <!-- L/G GRAVITY EXTENSION — guarded manual free-fall handle -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;">
+    <div class="slbl">L/G GRVTY<br>EXTN</div>
+    <div id="gravGuard" onclick="liftGravGuard(event)" title="Lift guard first"
+      style="width:36px;height:18px;z-index:3;
+      background:repeating-linear-gradient(45deg,#c81a1a,#c81a1a 4px,#7a0f0f 4px,#7a0f0f 8px);
+      border:1px solid #ff5533;border-radius:3px 3px 0 0;cursor:pointer;
+      transform-origin:top center;transition:transform .25s ease,opacity .25s;"></div>
+    <div onclick="pullGravityExtn(event)" title="Pull for gravity extension"
+      style="width:36px;height:44px;background:linear-gradient(180deg,#2c2c2c,#0e0e0e);
+      border:2px solid #3a3a3a;border-radius:0 0 6px 6px;cursor:pointer;margin-top:-2px;
+      display:flex;align-items:flex-end;justify-content:center;padding-bottom:5px;">
+      <div style="width:16px;height:16px;border-radius:50%;
+        background:radial-gradient(circle at 35% 30%,#999,#222);
+        border:1px solid #000;"></div>
+    </div>
+    <div style="font-size:6.5px;color:#334;letter-spacing:1px;" id="gravStatus">NORMAL</div>
+  </div>
+
+  <!-- LDG GEAR — triangle indicator pushbuttons (matches hardware photo) -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:5px;">
+    <div class="slbl">LDG GEAR</div>
+    <div class="ldg-grp">
+      <div class="ldg-btn" id="ulL" title="Left gear"><div class="ldg-tri" id="ulLtri"></div></div>
+      <div class="ldg-btn" id="ulN" title="Nose gear"><div class="ldg-tri" id="ulNtri"></div></div>
+      <div class="ldg-btn" id="ulR" title="Right gear"><div class="ldg-tri" id="ulRtri"></div></div>
+    </div>
+    <div style="font-size:6.5px;color:#222232;letter-spacing:1px;" id="dlW">·</div>
+  </div>
+
+  <!-- AUTO/BRK -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+    <div class="slbl">AUTO/BRK</div>
+    <div style="display:flex;gap:4px;padding:4px;border:1px solid #6a7a8a;border-radius:3px;">
+      <div class="pb" onclick="setABK('LO')">
+        <div class="pbb" style="width:40px;height:36px;">
+          <div class="pbt">LO</div><div class="pbi id" id="abLO"></div>
+        </div>
+      </div>
+      <div class="pb" onclick="setABK('MED')">
+        <div class="pbb" style="width:40px;height:36px;">
+          <div class="pbt">MED</div><div class="pbi id" id="abMED"></div>
+        </div>
+      </div>
+      <div class="pb" onclick="setABK('MAX')">
+        <div class="pbb" style="width:40px;height:36px;">
+          <div class="pbt">MAX</div><div class="pbi id" id="abMAX"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- A/SKID & N/W STRG — rotary knob (matches hardware photo) -->
+  <div class="askid-wrap">
+    <div class="slbl">A/SKID &<br>N/W STRG</div>
+    <div style="position:relative;display:flex;align-items:center;gap:4px;">
+      <div class="askid-knob" onclick="toggleSkid()" title="A/SKID & N/W STRG">
+        <div class="askid-grooves"></div>
+        <div class="askid-ptr" id="skidPtr"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;font-size:7px;color:#8899aa;">
+        <span>ON</span><span>OFF</span>
+      </div>
+    </div>
+    <div style="font-size:7px;font-weight:bold;color:#00cc44;" id="skidI">ON</div>
+  </div>
+
+  <!-- BRK FAN -->
+  <div class="pb" onclick="toggleFan()">
+    <div class="slbl">BRK<br>FAN</div>
+    <div class="pbb" style="width:46px;height:44px;margin-top:4px;">
+      <div class="pbt">BRK<br>FAN</div>
+      <div class="pbi id" id="fanI"></div>
+    </div>
+  </div>
+
+  <!-- ACCU -->
+  <div class="accu-w">
+    <div class="slbl">ACCU<br>PRESS</div>
+    <canvas id="acC" width="66" height="66"></canvas>
+    <div style="font-size:8px;color:#00ff88;" id="acV">3000</div>
+    <div style="font-size:6.5px;color:#334;letter-spacing:1px;">PSI</div>
+  </div>
+
+  <!-- SPEEDBRAKE lever -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+    <div class="slbl">SPD<br>BRK</div>
+    <div style="width:28px;height:95px;background:#07101a;border:2px solid #1c2b3a;border-radius:3px;
+         position:relative;cursor:pointer;box-shadow:inset 0 3px 8px rgba(0,0,0,.9);"
+         onclick="cycleSB()">
+      <div style="font-size:6px;color:#243444;position:absolute;top:4px;width:100%;text-align:center;">RET</div>
+      <div style="font-size:6px;color:#243444;position:absolute;bottom:4px;width:100%;text-align:center;">FULL</div>
+      <div id="sbKnob" style="position:absolute;left:2px;right:2px;height:18px;border-radius:2px;
+           background:linear-gradient(150deg,#161e28,#0c1418);border:1px solid #283848;
+           display:flex;align-items:center;justify-content:center;font-size:6px;color:#4a5a6a;
+           transition:top .2s,background .2s;">RET</div>
+    </div>
+    <div style="font-size:7px;" id="sbLbl" style="color:#3a5a3a;">RET</div>
+  </div>
+
+  <!-- HYD source -->
+  <div class="hyds">
+    <div style="font-size:7px;color:#334;letter-spacing:2px;">LG POWER</div>
+    <div class="hydv" id="hydV">GREEN HYD</div>
+    <div class="hydp" id="hydP">3000 PSI</div>
+    <div style="font-size:6.5px;color:#334;margin-top:3px;line-height:1.5;">
+      Normal: GREEN 3000<br>Backup: Gravity ext<br>Brakes: G / Y(alt)
+    </div>
+    <div style="display:flex;gap:4px;margin-top:6px;">
+      <div onclick="setHP(3000)" style="font-size:8px;font-weight:bold;color:#00ff88;cursor:pointer;padding:3px 7px;background:#001a0a;border:2px solid #00aa44;border-radius:3px;">3000</div>
+      <div onclick="setHP(1500)" style="font-size:8px;font-weight:bold;color:#ffbb22;cursor:pointer;padding:3px 7px;background:#1a0e00;border:2px solid #aa6600;border-radius:3px;">LOW</div>
+      <div onclick="setHP(0)"    style="font-size:8px;font-weight:bold;color:#ff3322;cursor:pointer;padding:3px 7px;background:#1a0000;border:2px solid #aa1100;border-radius:3px;">LOSS</div>
+      <div onclick="resetGravity()" title="Ground maintenance reset"
+        style="font-size:8px;font-weight:bold;color:#8899aa;cursor:pointer;padding:3px 7px;background:#0a1018;border:2px solid #33445a;border-radius:3px;">RESET</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ECAM WHEEL SD DISPLAY ═══ -->
+<div class="ecam">
+  <div class="ehdr"><span class="ettl">WHEEL</span></div>
+  <div class="ewrn" id="ecW" style="opacity:0"></div>
+  <canvas id="cv" width="900" height="498"></canvas>
+  <div class="eftr">
+    <div class="ef"><span class="el">TAT</span><span class="ev">+15</span><span class="eu">°C</span></div>
+    <div class="ef"><span class="el">SAT</span><span class="ev">-2</span><span class="eu">°C</span></div>
+    <div class="eclk" id="ck">-- H --</div>
+    <div style="flex:1"></div>
+    <div class="ef"><span class="el">GW</span><span class="ev" id="gwv">54800</span><span class="eu">KG</span></div>
+  </div>
+</div>
+
+<div class="tip" id="tip"></div>
+
+<script>
+'use strict';
+/* ════════════════════════════════════════════════
+   COLOR CONSTANTS  (A320 ECAM exact colors)
+════════════════════════════════════════════════ */
+const GRN='#00ff88';  // green — normal / locked
+const RED='#ff3322';  // red   — transit / fault
+const AMB='#ffbb22';  // amber — warning / deployed
+const CYN='#22ccdd';  // cyan  — secondary labels
+const WHT='#dddddd';  // white — primary labels
+
+/* ════════════════════════════════════════════════
+   HYD STATE
+════════════════════════════════════════════════ */
+let hydPsi=3000;
+function setHP(v){hydPsi=v;updHyd();}
+function updHyd(){
+  const ok=hydPsi>=1500;
+  document.getElementById('hydV').textContent=hydPsi>=3000?'GREEN HYD':hydPsi>0?'HYD LOW':'GREEN LOSS';
+  document.getElementById('hydV').style.color=hydPsi>=3000?GRN:hydPsi>=1500?AMB:RED;
+  document.getElementById('hydV').style.borderColor=ok?'#1a4422':'#882222';
+  document.getElementById('hydP').textContent=hydPsi+' PSI';
+  document.getElementById('hydP').style.color=hydPsi>=3000?GRN:hydPsi>1000?AMB:RED;
+}
+updHyd();
+
+/* ════════════════════════════════════════════════
+   LANDING GEAR STATE  —  A320 FCOM DSC-32
+   
+   DOOR SEQUENCE (extension):
+   0.00–0.20 : Bay doors OPEN  (gear still stowed)
+   0.20–0.82 : Gear SWINGS     (doors fully open)
+   0.82–1.00 : Bay doors CLOSE (gear locked down)
+   
+   RETRACTION = exact reverse
+   Transit duration: extension 10s, retraction 8s
+════════════════════════════════════════════════ */
+const T_DN=10000, T_UP=8000;
+const T_GRAV=17000; // gravity extension is slower — no hydraulic assist
+const SEQ={D1:0.20, D2:0.82}; // sequence timing fractions
+
+const LG={
+  lever:'up',
+  nose :{ph:'up', p:0, gravity:false},
+  left :{ph:'up', p:0, gravity:false},
+  right:{ph:'up', p:0, gravity:false},
+  gravityUsed:false,
+  tmr:null
+};
+
+function isTrans(g){return LG[g].ph==='transit_dn'||LG[g].ph==='transit_up';}
+function gCol(g){ return isTrans(g)?RED:GRN; }
+
+/* sub-phases: dO=door opening, gS=gear swinging, dC=door closing, each 0→1 */
+/* ─────────────────────────────────────────────
+   subPh() — 3-phase sequence breakdown
+
+   EXTENSION (dir='dn'):  prog 0→1
+     Phase 1 (0→D1):   doors OPEN    dO: 0→1
+     Phase 2 (D1→D2):  strut SWINGS  gS: 0→1
+     Phase 3 (D2→1):   doors CLOSE   dC: 0→1
+
+   RETRACTION (dir='up'): prog 1→0
+     REVERSE of extension — read sequence backwards:
+     Phase 1 (1→D2):   doors OPEN    dO: 0→1  (doors open first)
+     Phase 2 (D2→D1):  strut SWINGS  gS: 0→1  (then strut retracts)
+     Phase 3 (D1→0):   doors CLOSE   dC: 0→1  (doors close last)
+
+   For retraction we flip: raw = 1-prog (so raw goes 0→1 as gear retracts)
+   then apply same formula but phases are reversed in time:
+     doors open  = first 18% (1-D2 = 0.18)
+     strut swings= middle 62% (D2-D1 = 0.62)
+     doors close = last 20% (D1 = 0.20)
+───────────────────────────────────────────── */
+function subPh(prog, dir){
+  const {D1,D2}=SEQ;   // D1=0.20 D2=0.82
+  if(dir==='dn'){
+    // Extension: prog 0→1
+    const raw=prog;
+    return {
+      dO: Math.min(raw/D1, 1),
+      gS: raw<D1?0:Math.min((raw-D1)/(D2-D1),1),
+      dC: raw<D2?0:Math.min((raw-D2)/(1-D2),1)
+    };
+  } else {
+    // Retraction: prog 1→0 → reverse phases
+    // raw = how far into retraction (0=just started retracting, 1=fully retracted)
+    const raw=1-prog;
+    // Reverse timing: doors open first (0→0.18), strut retracts (0.18→0.80), doors close (0.80→1.0)
+    const R1=1-D2;  // 0.18 — doors open phase duration
+    const R2=D2-D1; // 0.62 — strut phase duration
+    // R3=D1=0.20    — doors close phase duration
+    return {
+      dO: Math.min(raw/R1, 1),
+      gS: raw<R1?0:Math.min((raw-R1)/R2,1),
+      dC: raw<(R1+R2)?0:Math.min((raw-R1-R2)/D1,1)
+    };
+  }
+}
+function easeIO(t){return (1-Math.cos(t*Math.PI))/2;}
+
+/* ─────────────────────────────────────────────
+   GRAVITY EXTENSION (FREE FALL) — FCOM DSC-32-30
+
+   When GREEN HYD pressure is lost, normal powered extension is not
+   available. The pilot uses a separate manually-operated gravity
+   extension handle (guarded, floor-mounted between the pilots' seats
+   on the real aircraft). Pulling it:
+     1. Mechanically unlocks the uplocks
+     2. Releases the gear doors — they fall open under gravity/airflow
+        and are NOT hydraulically closed again (they stay open)
+     3. Releases the gear itself to free-fall, assisted by airflow,
+        into the down position where it locks via spring-loaded
+        mechanical downlocks (no hydraulic pressure required to lock)
+   Retraction is NOT possible afterward — the aircraft must be on the
+   ground for maintenance to reset the system.
+
+   subPhGravity(): doors open over the first 15% of travel and then
+   simply stay open (dC permanently 0) — unlike the powered sequence
+   which closes the doors again once the gear is locked down.
+───────────────────────────────────────────── */
+function subPhGravity(prog){
+  const D1=0.15;
+  return {
+    dO: Math.min(prog/D1, 1),
+    gS: prog<D1 ? 0 : Math.min((prog-D1)/(1-D1), 1),
+    dC: 0
+  };
+}
+
+function clickLever(ev){
+  if(LG.gravityUsed){
+    showWarn('L/G GRVTY EXTN USED — RESET ON GROUND');
+    return;
+  }
+  const next=LG.lever==='up'?'down':'up';
+  if(next==='up'&&hydPsi<1000){
+    showWarn('HYD G LO PR — CANNOT RETRACT');
+    return;
+  }
+  LG.lever=next;
+  updLeverUI();
+  if(hydPsi>=1000){
+    beginTransit(LG.lever);              // normal powered sequence
+  } else if(next==='down'){
+    // Lever selected DOWN but no hydraulic power — gear stays put
+    // until the gravity extension handle is pulled.
+    showWarn('L/G LEVER DOWN — HYD G LO PR — USE GRVTY EXTN');
+  }
+  splash(ev);
+}
+
+/* ── Gravity extension guarded handle ── */
+let gravGuardLifted=false, gravGuardTimer=null;
+function liftGravGuard(ev){
+  ev.stopPropagation();
+  gravGuardLifted=true;
+  const g=document.getElementById('gravGuard');
+  g.style.transform='rotateX(-95deg) translateY(-6px)';
+  g.style.opacity='0.15';
+  clearTimeout(gravGuardTimer);
+  gravGuardTimer=setTimeout(closeGravGuard,4000);
+}
+function closeGravGuard(){
+  gravGuardLifted=false;
+  const g=document.getElementById('gravGuard');
+  if(g){g.style.transform='none';g.style.opacity='1';}
+}
+function pullGravityExtn(ev){
+  if(!gravGuardLifted){
+    const g=document.getElementById('gravGuard');
+    if(g){g.style.boxShadow='0 0 8px 2px #ff2222';setTimeout(()=>{g.style.boxShadow='none';},260);}
+    return;
+  }
+  clearTimeout(gravGuardTimer);
+  if(LG.gravityUsed){ showWarn('GRVTY EXTN ALREADY USED'); closeGravGuard(); return; }
+  if(hydPsi>=1000){ showWarn('GRVTY EXTN N/A — HYD NORMAL'); closeGravGuard(); return; }
+  if(LG.lever!=='down'){ showWarn('SELECT L/G LEVER DOWN FIRST'); closeGravGuard(); return; }
+  LG.gravityUsed=true;
+  const st=document.getElementById('gravStatus');
+  st.textContent='USED'; st.style.color='#ffbb22';
+  beginGravityTransit();
+  splash(ev);
+  closeGravGuard();
+}
+
+function beginGravityTransit(){
+  if(LG.tmr)clearInterval(LG.tmr);
+  ['nose','left','right'].forEach(g=>{
+    LG[g].ph='transit_dn';
+    LG[g].p=0;
+    LG[g].gravity=true;
+  });
+  const t0=Date.now();
+  LG.tmr=setInterval(()=>{
+    const raw=Math.min((Date.now()-t0)/T_GRAV,1);
+    const p=raw; // free-fall — no easing, roughly constant rate
+    ['nose','left','right'].forEach(g=>{ LG[g].p=p; });
+    if(raw>=1){
+      ['nose','left','right'].forEach(g=>{ LG[g].ph='down'; LG[g].p=1; });
+      clearInterval(LG.tmr); LG.tmr=null;
+    }
+    updUnlk(); updDN(); updWarn();
+  },40);
+}
+
+/* ── Ground maintenance reset (demo convenience) ── */
+function resetGravity(){
+  if(LG.tmr)clearInterval(LG.tmr);
+  LG.gravityUsed=false; LG.lever='up';
+  ['nose','left','right'].forEach(g=>{LG[g].ph='up';LG[g].p=0;LG[g].gravity=false;});
+  updLeverUI(); updUnlk(); updDN();
+  const st=document.getElementById('gravStatus');
+  st.textContent='NORMAL'; st.style.color='#334';
+  updWarn();
+}
+
+function beginTransit(dir){
+  if(LG.tmr)clearInterval(LG.tmr);
+  const dur=dir==='down'?T_DN:T_UP;
+  const ph=dir==='down'?'transit_dn':'transit_up';
+  // Set starting progress correctly
+  ['nose','left','right'].forEach(g=>{
+    LG[g].ph=ph;
+    LG[g].gravity=false;
+    // Extension starts at p=0, retraction starts at p=1
+    LG[g].p = dir==='down' ? 0 : 1;
+  });
+  const t0=Date.now();
+  LG.tmr=setInterval(()=>{
+    const raw=Math.min((Date.now()-t0)/dur,1);
+    // Extension: p goes 0→1,  Retraction: p goes 1→0
+    const p = dir==='down' ? easeIO(raw) : 1-easeIO(raw);
+    ['nose','left','right'].forEach(g=>{ LG[g].p=p; });
+    if(raw>=1){
+      ['nose','left','right'].forEach(g=>{
+        LG[g].ph=dir==='down'?'down':'up';
+        LG[g].p =dir==='down'?1:0;
+      });
+      clearInterval(LG.tmr); LG.tmr=null;
+    }
+    updUnlk(); updDN();
+  },40);
+}
+
+function updLeverUI(){
+  const k=document.getElementById('lk');
+  const dn=LG.lever==='down';
+  k.className='lg-handle '+(dn?'lgh-dn':'lgh-up');
+}
+
+function updUnlk(){
+  [['L','left'],['N','nose'],['R','right']].forEach(([id,g])=>{
+    const t=isTrans(g);
+    const down=LG[g].ph==='down';
+    const tri=document.getElementById('ul'+id+'tri');
+    tri.className='ldg-tri'+(down?' lit':t?' unsafe':'');
+  });
+}
+function updDN(){
+  const all=['nose','left','right'].every(g=>LG[g].ph==='down');
+  const el=document.getElementById('dlW');
+  el.textContent=all?'DOWN':'·';
+  el.style.color=all?'#00ff55':'#222232';
+}
+
+/* ════════════════════════════════════════════════
+   CONTROLS
+════════════════════════════════════════════════ */
+const CTRL={abk:'OFF',skid:true,fan:false,accu:3000};
+function setABK(m){
+  CTRL.abk=CTRL.abk===m?'OFF':m;
+  ['LO','MED','MAX'].forEach(x=>{
+    const on=CTRL.abk===x;
+    document.getElementById('ab'+x).textContent=on?'ARM':'';
+    document.getElementById('ab'+x).className='pbi '+(on?'iau':'id');
+  });
+}
+function toggleSkid(){
+  CTRL.skid=!CTRL.skid;
+  const ptr=document.getElementById('skidPtr');
+  const el=document.getElementById('skidI');
+  ptr.style.transform=CTRL.skid?'rotate(0deg)':'rotate(180deg)';
+  el.textContent=CTRL.skid?'ON':'OFF';
+  el.style.color=CTRL.skid?'#00cc44':'#ff2222';
+}
+function toggleFan(){
+  CTRL.fan=!CTRL.fan;
+  const el=document.getElementById('fanI');
+  el.textContent=CTRL.fan?'ON':'';
+  el.className='pbi '+(CTRL.fan?'ion':'id');
+}
+
+/* Speedbrake */
+/* ════════════════════════════════════════
+   SPEEDBRAKE LEVER — 4 positions
+   FCOM: panels 2,3,4 deploy as speedbrake
+   Panel 2: max 20°, Panels 3&4: max 40°
+   Panel 1&5: ground spoilers only (not SB)
+════════════════════════════════════════ */
+const SB_POS=[
+  {v:0,    l:'RET' },
+  {v:0.333,l:'1/3' },
+  {v:0.667,l:'2/3' },
+  {v:1.0,  l:'FULL'}
+];
+let sbIdx=0;
+function cycleSB(){
+  sbIdx=(sbIdx+1)%SB_POS.length;
+  const {v,l}=SB_POS[sbIdx];
+  SPL.sbLever=v;
+  // Apply to panels 2,3,4 (idx 1,2,3) — FCOM accurate degrees
+  applySB(v);
+  // Armed = lever > 0 (ground spoilers arm)
+  SPL.armed=(v>0);
+  const k=document.getElementById('sbKnob');
+  k.style.top=(4+sbIdx*22)+'px';
+  k.textContent=l;
+  k.style.background=v>0?'linear-gradient(150deg,#2a2200,#1a1600)':'linear-gradient(150deg,#161e28,#0c1418)';
+  k.style.color=v>0?AMB:'#4a5a6a';
+  document.getElementById('sbLbl').textContent=l;
+  document.getElementById('sbLbl').style.color=v>0?AMB:GRN;
+}
+
+/* ════════════════════════════════════════════════
+   SPOILER / SPEEDBRAKE STATE  —  A320 FCOM accurate
+
+   A320 has 5 spoilers per wing:
+   Panel 1 (inboard) : Ground spoiler only           — SEC 3
+   Panel 2           : Speedbrake + Ground spoiler   — SEC 1  max 20°
+   Panel 3           : Speedbrake + Roll + Ground    — SEC 2  max 40°
+   Panel 4           : Speedbrake + Roll + Ground    — SEC 3  max 40°
+   Panel 5 (outboard): Roll + Ground spoiler         — SEC 1
+
+   Speedbrake lever positions: RET / 1/3 / 2/3 / FULL
+   Ground spoilers arm via lever (raised). Deploy auto on landing.
+
+   ECAM WHEEL SD spoiler symbol (FCOM):
+   - RETRACTED normal  : green horizontal line ──
+   - DEPLOYED >2.5°    : green triangle ▲ (raised above baseline)
+   - FAULT retracted   : amber horizontal line ──
+   - FAULT deployed    : amber triangle ▲
+   - INVALID           : amber XX
+════════════════════════════════════════════════ */
+const SPL={
+  // Actual deflection degrees for each panel (0-40°)
+  L:[0,0,0,0,0],   // Left  panels 1-5 (degrees)
+  R:[0,0,0,0,0],   // Right panels 1-5 (degrees)
+  fault:[false,false,false,false,false, false,false,false,false,false], // L1..L5, R1..R5
+  invalid:[false,false,false,false,false, false,false,false,false,false],
+  sbLever:0,        // 0=RET, 0.333=1/3, 0.667=2/3, 1.0=FULL
+  armed:false,      // ground spoiler armed
+  gndDeploy:false,  // ground spoiler auto-deployed
+};
+
+/* Max deflection per panel position */
+const SPL_MAX=[0, 20, 40, 40, 0]; // panel index 0-4, panel 1(idx0)=GND only
+
+/* Apply speedbrake lever setting to panels 2,3,4 (idx 1,2,3) */
+function applySB(lev){
+  // Panel 2(idx1): max 20°, panels 3&4(idx2,3): max 40°
+  const d2=lev*20, d34=lev*40;
+  SPL.L[1]=d2; SPL.R[1]=d2;
+  SPL.L[2]=d34;SPL.R[2]=d34;
+  SPL.L[3]=d34;SPL.R[3]=d34;
+  // Panel 1 and 5 NOT deployed by speedbrake in flight
+}
+
+/* Ground spoiler deploy (all panels) */
+function deployGndSpoilers(armed){
+  if(armed){
+    // All 5 panels deploy to max
+    SPL.L=[40,20,40,40,30];
+    SPL.R=[40,20,40,40,30];
+  } else {
+    // Retract all
+    SPL.L=[0,0,0,0,0];
+    SPL.R=[0,0,0,0,0];
+    SPL.gndDeploy=false;
+  }
+}
+
+/* ════════════════════════════════════════════════
+   BRAKE TEMPS & ACCU
+════════════════════════════════════════════════ */
+const BT={L1:5,L2:5,R3:5,R4:5};
+setInterval(()=>{
+  const hot=LG.left.ph==='down'&&LG.lever==='down';
+  ['L1','L2','R3','R4'].forEach(w=>{
+    BT[w]=hot?Math.min(BT[w]+0.4,500):Math.max(BT[w]-(CTRL.fan?.20:.05),5);
+  });
+  CTRL.accu=hot?Math.max(CTRL.accu-1.5,1400):Math.min(CTRL.accu+(hydPsi>=1500?3:0),3000);
+  document.getElementById('acV').textContent=Math.round(CTRL.accu);
+  document.getElementById('acV').style.color=CTRL.accu>2000?GRN:CTRL.accu>1400?AMB:RED;
+  drawAccu();
+},350);
+
+/* ACCU gauge */
+function drawAccu(){
+  const cv=document.getElementById('acC');
+  const g=cv.getContext('2d');
+  const W=cv.width,H=cv.height,cx=W/2,cy=H/2+4,r=25;
+  g.clearRect(0,0,W,H);
+  g.strokeStyle='#151e28';g.lineWidth=5;
+  g.beginPath();g.arc(cx,cy,r,Math.PI*.72,Math.PI*.28,false);g.stroke();
+  const pct=Math.min(CTRL.accu/4000,1);
+  const sa=Math.PI*.72,ea=sa+Math.PI*1.56*pct;
+  const col=CTRL.accu>2000?GRN:CTRL.accu>1400?AMB:RED;
+  g.strokeStyle=col;g.lineWidth=5;
+  g.beginPath();g.arc(cx,cy,r,sa,ea,false);g.stroke();
+  const a2=sa+Math.PI*1.56*pct;
+  g.strokeStyle='#bbb';g.lineWidth=1.5;
+  g.beginPath();g.moveTo(cx,cy);g.lineTo(cx+Math.cos(a2)*(r-7),cy+Math.sin(a2)*(r-7));g.stroke();
+  g.fillStyle='#333';g.beginPath();g.arc(cx,cy,3,0,Math.PI*2);g.fill();
+}
+drawAccu();
+
+/* ════════════════════════════════════════════════
+   ECAM CANVAS  —  A320 WHEEL SD exact layout
+   
+   Reference photos analysis:
+   • Top area: two rows of spoiler arrows per wing (5 each)
+   • Center: WHEEL label top-left
+   • Nose gear: center top, between spoiler groups
+   • Main gears: lower left and lower right
+   • Brake temp panels: below each main gear
+   • Gear symbols: horizontal axle line + center dot + strut + ▽ triangle
+   • UP: dashed axle, doors shown as small lines at axle ends
+   • DOWN: solid axle, strut vertical, green triangle
+   • TRANSIT: red dashed axle, animated doors & strut, red triangle
+   • CENTER: "L/G CTL" amber during transit, "UP LOCK" amber when up+locked
+════════════════════════════════════════════════ */
+const cv=document.getElementById('cv');
+const g2=cv.getContext('2d');
+const EW=cv.width,EH=cv.height;
+const ZONES=[];
+function addZ(x,y,w,h,info){ZONES.push({x:x-w/2,y:y-h/2,w,h,info});}
+
+/* Layout constants — matched to real ECAM photos */
+const SPL_Y   = 68;   // spoiler row base Y
+const SPL_GAP = 12;   // gap between spoiler arrows
+const SPL_W   = 16;   // arrow width
+const NY  = 195;  // Nose gear axle Y
+const MY  = 270;  // Main gear axle Y
+const NX  = EW/2; // Nose gear X
+const LX  = 192;  // Left main gear X
+const RX  = EW-192; // Right main gear X
+const SN  = 54;   // Nose strut length
+const SM  = 58;   // Main strut length
+
+/* ─── MAIN DRAW FUNCTION ─── */
+function draw(){
+  g2.clearRect(0,0,EW,EH);
+  g2.fillStyle='#010804';g2.fillRect(0,0,EW,EH);
+  ZONES.length=0;
+
+  drawSpoilers();
+  drawNose();
+  drawMain('left');
+  drawMain('right');
+  drawBrake('left', LX, 398);
+  drawBrake('right',RX, 398);
+  drawCenterMsg();
+}
+
+/* ════════════════════════════════════════════════════
+   DRAW SPOILERS — exact A320 WHEEL SD FCOM symbols
+
+   Layout: two mirror-image groups, one per wing
+   Left wing:  panels 1-5 left to right (inboard→outboard)
+   Right wing: panels 1-5 right to left (mirror)
+
+   Each panel symbol:
+   ─ Retracted  : short horizontal green line (──) at baseline
+   ▲ Deployed   : filled triangle pointing UP, raised above baseline
+                  height proportional to deflection angle
+   Fault states shown in amber.
+   Invalid: "XX" in amber.
+
+   Baseline Y = SPL_Y
+   Triangle rises above baseline up to 36px at max (40°)
+════════════════════════════════════════════════════ */
+function drawSpoilers(){
+  const N=5;
+  const PW=18;   // panel width (horizontal extent)
+  const GAP=10;  // gap between panels
+  const rowW=(N-1)*(PW+GAP)+PW;
+
+  // Wing label positions
+  // Left wing panels: ordered 5→4→3→2→1 (outboard left to center)
+  // Right wing panels: 1→2→3→4→5 (center to outboard right)
+  // Centered around nose gear area
+  const L_RIGHT_EDGE = NX - 40;  // where left wing group ends (near nose gear)
+  const R_LEFT_EDGE  = NX + 40;  // where right wing group starts
+
+  // Left wing: rightmost panel nearest nose, so startX = L_RIGHT_EDGE - rowW
+  const lStartX = L_RIGHT_EDGE - rowW;
+  // Right wing: leftmost panel nearest nose
+  const rStartX = R_LEFT_EDGE;
+
+  // Wing label
+  g2.fillStyle=GRN+'88';g2.font='8px Share Tech Mono';g2.textAlign='center';
+  g2.fillText('L',lStartX-16,SPL_Y-2);
+  g2.fillText('R',rStartX+rowW+16,SPL_Y-2);
+
+  // Draw left wing (panel order: 5 outboard left → 1 inboard)
+  // On ECAM left wing shows panel 5 leftmost, 1 rightmost
+  for(let i=0;i<N;i++){
+    const panelIdx=4-i;  // 4=panel5 leftmost, 0=panel1 rightmost
+    const ax=lStartX+i*(PW+GAP)+PW/2;
+    const deg=SPL.L[panelIdx];
+    const flt=SPL.fault[panelIdx];
+    const inv=SPL.invalid[panelIdx];
+    const isGnd=panelIdx===0||panelIdx===4;
+    drawSpoilerSymbol(ax, SPL_Y, PW, deg, flt, inv,
+      `Left Spoiler ${panelIdx+1} (${isGnd?'GND':'FLT'})`,
+      `Deflection: ${deg.toFixed(1)}°
+`+
+      `Type: ${panelIdx===0?'Ground only':panelIdx===4?'Roll+Ground':'Speedbrake+Roll+Ground'}
+`+
+      `SEC: ${panelIdx<=1?'SEC1':panelIdx<=3?'SEC2/3':'SEC3'}
+`+
+      `Status: ${flt?'FAULT':inv?'INVALID':deg>2.5?'DEPLOYED':'RETRACTED'}`
+    );
+  }
+
+  // Draw right wing (panel 1 leftmost, 5 rightmost)
+  for(let i=0;i<N;i++){
+    const panelIdx=i;
+    const ax=rStartX+i*(PW+GAP)+PW/2;
+    const deg=SPL.R[panelIdx];
+    const flt=SPL.fault[5+panelIdx];
+    const inv=SPL.invalid[5+panelIdx];
+    const isGnd=panelIdx===0||panelIdx===4;
+    drawSpoilerSymbol(ax, SPL_Y, PW, deg, flt, inv,
+      `Right Spoiler ${panelIdx+1} (${isGnd?'GND':'FLT'})`,
+      `Deflection: ${deg.toFixed(1)}°
+`+
+      `Type: ${panelIdx===0?'Ground only':panelIdx===4?'Roll+Ground':'Speedbrake+Roll+Ground'}
+`+
+      `SEC: ${panelIdx<=1?'SEC1':panelIdx<=3?'SEC2/3':'SEC3'}
+`+
+      `Status: ${flt?'FAULT':inv?'INVALID':deg>2.5?'DEPLOYED':'RETRACTED'}`
+    );
+  }
+
+  // Speedbrake/GND spoiler status labels
+  if(SPL.armed){
+    g2.fillStyle=GRN;g2.font='bold 9px Share Tech Mono';g2.textAlign='center';
+    g2.fillText('GND SPLRS ARMED',EW/2,SPL_Y+40);
+  }
+  if(SPL.sbLever>0){
+    g2.fillStyle=AMB;g2.font='bold 9px Share Tech Mono';g2.textAlign='center';
+    g2.fillText(`SPD BRK ${Math.round(SPL.sbLever*100)}%`,EW/2,SPL_Y+54);
+  }
+}
+
+/* ─────────────────────────────────────────
+   FCOM WHEEL SD Spoiler Symbol:
+
+   RETRACTED (deg ≤ 2.5°):
+     Green (or amber if fault) horizontal line ──
+     Width = panel width, centered at x, at baseline Y
+
+   DEPLOYED (deg > 2.5°):
+     Filled triangle ▲ pointing UP
+     Base at baseline Y, apex rises above
+     Height scales with angle: max 36px at 40°
+     Color: green (normal) or amber (fault)
+
+   INVALID: amber "XX" text
+─────────────────────────────────────────── */
+function drawSpoilerSymbol(x,baseY,W,deg,fault,invalid,tipTitle,tipDesc){
+  addZ(x,baseY,W+8,40,{t:tipTitle,d:tipDesc});
+
+  if(invalid){
+    g2.fillStyle=AMB;g2.font='bold 10px Share Tech Mono';g2.textAlign='center';
+    g2.fillText('XX',x,baseY+4);
+    return;
+  }
+
+  const col=fault?AMB:GRN;
+  const deployed=deg>2.5;
+
+  if(!deployed){
+    // Horizontal line — retracted
+    g2.strokeStyle=col;g2.lineWidth=2.2;g2.setLineDash([]);
+    g2.beginPath();g2.moveTo(x-W/2,baseY);g2.lineTo(x+W/2,baseY);g2.stroke();
+    return;
+  }
+
+  // Triangle — deployed
+  // Height scales: 2.5°→0px, 20°→18px, 40°→36px
+  const h=Math.max(0, (deg-2.5)/37.5 * 34);
+  const hw=W*0.52;
+  const apexY=baseY-h;
+
+  g2.strokeStyle=col;g2.lineWidth=1.8;g2.setLineDash([]);
+  // Fill (semi-transparent)
+  g2.fillStyle=col+'44';
+  g2.beginPath();
+  g2.moveTo(x-hw,baseY);
+  g2.lineTo(x+hw,baseY);
+  g2.lineTo(x,apexY);
+  g2.closePath();
+  g2.fill();
+  // Outline
+  g2.beginPath();
+  g2.moveTo(x-hw,baseY);
+  g2.lineTo(x+hw,baseY);
+  g2.lineTo(x,apexY);
+  g2.closePath();
+  g2.stroke();
+}
+
+/* ════════════════════════════════════════════════════════════
+   A320 LANDING GEAR ECAM — rebuilt from real aircraft photos
+
+   Exact symbols matched to photos (images 1-17):
+
+   ┌──────────────────────────────────────────────────────┐
+   │  NOSE GEAR UP+LOCKED (photos 1,3,12,13,16,17):       │
+   │  ── ·  ──   dashed green axle + center dot           │
+   │  |       |  two lines at axle ends, angled upward    │
+   │             (like  \  /  pointing inward-up)         │
+   │                                                      │
+   │  MAIN GEAR UP+LOCKED:                                │
+   │  ── · ──    dashed green axle + dot                  │
+   │  \      /   lines at ends angled up-inward           │
+   │                                                      │
+   │  ALL GEARS DOWN+LOCKED:                              │
+   │  ─────·─────   solid green axle                      │
+   │       |        vertical strut                        │
+   │       ▽        green filled triangle (hatched)       │
+   │  \         /   short lines at axle ends, open/down   │
+   │                                                      │
+   │  TRANSIT — photos 4-11:                              │
+   │  Red dashed axle + red dot                           │
+   │  Phase 1 (0-20%): door lines open (sweep outward)    │
+   │  Phase 2 (20-80%): strut rotates, doors fully open   │
+   │  Phase 3 (80-100%): door lines close to down pos     │
+   │  Red triangle at strut tip throughout transit        │
+   │                                                      │
+   │  KEY OBSERVATION from photos:                        │
+   │  • Strut is SINGLE line from center pivot            │
+   │  • Nose strut swings front-to-back (forward retr.)   │
+   │  • Main strut swings inboard (toward fuselage)       │
+   │  • Door lines are SHORT (18-22px) at axle ends       │
+   │  • Door lines angle: up-inward(locked-up) →          │
+   │    vertical-down(open) → outward-down(locked-dn)     │
+   └──────────────────────────────────────────────────────┘
+════════════════════════════════════════════════════════════ */
+
+/* ─ ease function for smooth gear animation ─ */
+function easeGear(t){ return (1-Math.cos(Math.PI*t))*0.5; }
+
+/* ─ draw a single door indicator line ─
+   hx,hy = hinge point
+   angleDeg = angle in degrees (0=right, 90=down, -90=up, 180=left)
+   len = length in px, col = color */
+function doorLine(hx,hy,angleDeg,len,col){
+  const a=angleDeg*Math.PI/180;
+  g2.strokeStyle=col; g2.lineWidth=2; g2.setLineDash([]);
+  g2.beginPath();
+  g2.moveTo(hx, hy);
+  g2.lineTo(hx+Math.cos(a)*len, hy+Math.sin(a)*len);
+  g2.stroke();
+}
+
+/* ─ interpolate angle ─ */
+function lerpAng(a,b,t){ return a+(b-a)*easeGear(t); }
+
+/* ════════════════════════════════════════════════════════
+   NOSE GEAR
+   
+   From photos analysis:
+   ─ UP locked  : dashed axle + dot + 2 short door lines angled up-inward  (\  /)
+   ─ DOWN locked: solid axle + dot + vertical strut + green ▽ triangle
+                  + 2 short door lines angled outward-down
+   ─ Transit    : red dashed axle + red dot
+                  + animated door lines (3 phases)
+                  + strut sweeps from upper-right → straight down
+                  + red ▽ triangle at strut tip
+   
+   KEY from photo: strut during mid-transit points ~upper-right 30-45°
+   (not straight up — nose gear retracts FORWARD, so on ECAM it appears
+    tilted from upper-right down to vertical as it extends)
+════════════════════════════════════════════════════════ */
+function drawNose(){
+  const G2=LG.nose, p=G2.p, ph=G2.ph;
+  addZ(NX,NY,100,130,{t:'Nose Landing Gear',
+    d:`Phase: ${ph.toUpperCase()}\nProgress: ${Math.round(p*100)}%\n`+
+      `Steerable: ±75° (NW STRG)\nPower: GREEN HYD\nNo wheel brakes`});
+
+  // shared door line length
+  const DL=22;
+
+  /* UP & LOCKED */
+  if(ph==='up'){
+    dline(NX-44,NY,NX+44,NY,GRN,2,[8,5]);
+    dot(NX,NY,3.5,GRN);
+    axleEnd(NX-44,NY,GRN); axleEnd(NX+44,NY,GRN);
+    // Door lines: \  / shape (folded upward against fuselage)
+    doorLine(NX-44,NY,-135,DL,GRN+'88'); // left: up-right  ≈ NW-ish
+    doorLine(NX+44,NY, -45,DL,GRN+'88'); // right: up-left  ≈ NE-ish
+    return;
+  }
+
+  /* DOWN & LOCKED */
+  if(ph==='down'){
+    sline(NX-46,NY,NX+46,NY,GRN,2.5);
+    dot(NX,NY,4,GRN);
+    axleEnd(NX-46,NY,GRN); axleEnd(NX+46,NY,GRN);
+    sline(NX,NY,NX,NY+SN,GRN,2.5);     // vertical strut
+    tri(NX,NY+SN,GRN,1);
+    if(G2.gravity){
+      // Gravity extension: doors mechanically released, never re-closed —
+      // they hang open (amber, no hydraulic power to shut them)
+      doorLine(NX-46,NY, 90,DL,AMB+'cc');
+      doorLine(NX+46,NY, 90,DL,AMB+'cc');
+    } else {
+      // Door lines: folded away after normal powered extension
+      doorLine(NX-46,NY, 210,DL,GRN+'88'); // left: lower-left
+      doorLine(NX+46,NY, 330,DL,GRN+'88'); // right: lower-right
+    }
+    return;
+  }
+
+  /* TRANSIT */
+  const dir=ph==='transit_dn'?'dn':'up';
+  const {dO,gS,dC}=G2.gravity ? subPhGravity(p) : subPh(p,dir);
+
+  dline(NX-46,NY,NX+46,NY,RED+'99',2,[7,5]);
+  dot(NX,NY,3.5,RED);
+  axleEnd(NX-46,NY,RED); axleEnd(NX+46,NY,RED);
+
+  /* Door animation
+     UP-closed: left=-135°, right=-45°
+     OPEN (during swing): left=+90°, right=+90°  (hanging straight down)
+     DN-closed: left=210°, right=330°
+  */
+  if(dir==='dn'){
+    doorLine(NX-46,NY, lerpAng(lerpAng(-135,90,dO), 210,dC), DL,RED);
+    doorLine(NX+46,NY, lerpAng(lerpAng( -45,90,dO), 330,dC), DL,RED);
+  } else {
+    doorLine(NX-46,NY, lerpAng(lerpAng(210,90,dO), -135,dC), DL,RED);
+    doorLine(NX+46,NY, lerpAng(lerpAng(330,90,dO),  -45,dC), DL,RED);
+  }
+
+  /* Strut animation
+     EXTENSION (dn): starts at retracted angle (-45°) → sweeps to extended (+90°)
+     RETRACTION (up): starts at extended (+90°) → sweeps to retracted (-45°)
+     gS goes 0→1 in both cases (subPh handles the direction)
+  */
+  if(gS>0){
+    const strutRet=-45;
+    const strutExt=90;
+    // dn: ret→ext,  up: ext→ret
+    const strutDeg = dir==='dn'
+      ? lerpAng(strutRet, strutExt, gS)
+      : lerpAng(strutExt, strutRet, gS);
+    const rad=strutDeg*Math.PI/180;
+    const sx=NX+Math.cos(rad)*SN;
+    const sy=NY+Math.sin(rad)*SN;
+    g2.strokeStyle=RED; g2.lineWidth=2.5; g2.setLineDash([]);
+    g2.beginPath(); g2.moveTo(NX,NY); g2.lineTo(sx,sy); g2.stroke();
+    tri(sx, sy, RED, Math.min(gS*2.2, 1));
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   MAIN GEAR (LEFT / RIGHT)
+   
+   From photos:
+   ─ UP locked:  dashed axle + dot + door lines angled up-inward  \  /
+   ─ DOWN locked: solid axle + dot + vertical strut + green ▽
+                  + door lines angled outward-down
+   ─ Transit: red dashed axle + animated doors + rotating strut + red ▽
+   
+   A320 main gear retracts INBOARD (towards fuselage)
+   On ECAM: strut sweeps from inboard-upper area → straight down
+   LEFT  retracted: strut points upper-left  ≈ -45° to -60°
+   RIGHT retracted: strut points upper-right ≈ -120° to -135° (mirror)
+   
+   Door animation same 3-phase pattern.
+   Two door lines per gear (inboard + outboard bay doors)
+════════════════════════════════════════════════════════ */
+function drawMain(side){
+  const isL=side==='left';
+  const mx=isL?LX:RX;
+  const G2=LG[side], p=G2.p, ph=G2.ph;
+  addZ(mx,MY,115,145,{t:`${isL?'Left':'Right'} Main Gear`,
+    d:`Phase: ${ph.toUpperCase()}\nProgress: ${Math.round(p*100)}%\n`+
+      `Wheels: 2-wheel bogie\nBrake: GREEN HYD\nAlternate: YELLOW HYD\n`+
+      `ACCU: ${Math.round(CTRL.accu)} PSI\nA/SKID: ${CTRL.skid?'ON':'OFF'}`});
+
+  const DL=22;
+  const AX=52; // half-axle length
+
+  /* UP & LOCKED */
+  if(ph==='up'){
+    dline(mx-AX,MY,mx+AX,MY,GRN,2,[8,5]);
+    dot(mx,MY,3.5,GRN);
+    axleEnd(mx-AX,MY,GRN); axleEnd(mx+AX,MY,GRN);
+    // Both door lines fold upward: \  / shape
+    // slightly asymmetric: outboard slightly more upright
+    if(isL){
+      doorLine(mx-AX,MY,-120,DL,GRN+'88'); // outboard (left end): up-left  ≈-120°
+      doorLine(mx+AX,MY, -60,DL,GRN+'88'); // inboard  (right end): up-right ≈-60°
+    } else {
+      doorLine(mx-AX,MY,-120,DL,GRN+'88'); // inboard  (left end)
+      doorLine(mx+AX,MY, -60,DL,GRN+'88'); // outboard (right end)
+    }
+    return;
+  }
+
+  /* DOWN & LOCKED */
+  if(ph==='down'){
+    sline(mx-AX,MY,mx+AX,MY,GRN,2.5);
+    dot(mx,MY,4,GRN);
+    axleEnd(mx-AX,MY,GRN); axleEnd(mx+AX,MY,GRN);
+    sline(mx,MY,mx,MY+SM,GRN,2.5);
+    tri(mx,MY+SM,GRN,1);
+    if(G2.gravity){
+      doorLine(mx-AX,MY, 90,DL,AMB+'cc');
+      doorLine(mx+AX,MY, 90,DL,AMB+'cc');
+    } else {
+      // Doors folded down-outward after normal powered extension
+      doorLine(mx-AX,MY, 215,DL,GRN+'88');
+      doorLine(mx+AX,MY, 325,DL,GRN+'88');
+    }
+    return;
+  }
+
+  /* TRANSIT */
+  const dir=ph==='transit_dn'?'dn':'up';
+  const {dO,gS,dC}=G2.gravity ? subPhGravity(p) : subPh(p,dir);
+
+  dline(mx-AX,MY,mx+AX,MY,RED+'99',2,[7,5]);
+  dot(mx,MY,3.5,RED);
+  axleEnd(mx-AX,MY,RED); axleEnd(mx+AX,MY,RED);
+
+  /* Door animation
+     UP-closed:  left=-120°, right=-60°
+     OPEN:       both=+90° (hanging down, fully open)
+     DN-closed:  left=215°,  right=325°
+  */
+  if(dir==='dn'){
+    doorLine(mx-AX,MY, lerpAng(lerpAng(-120,90,dO), 215,dC), DL,RED);
+    doorLine(mx+AX,MY, lerpAng(lerpAng( -60,90,dO), 325,dC), DL,RED);
+  } else {
+    doorLine(mx-AX,MY, lerpAng(lerpAng(215,90,dO), -120,dC), DL,RED);
+    doorLine(mx+AX,MY, lerpAng(lerpAng(325,90,dO),  -60,dC), DL,RED);
+  }
+
+  /* Strut animation
+     EXTENSION (dn): retracted angle → +90° (straight down)
+     RETRACTION (up): +90° → retracted angle  (exact reverse)
+     gS goes 0→1 in both directions (subPh handles timing)
+  */
+  if(gS>0){
+    const strutRet = isL ? -55 : -125;
+    const strutExt = 90;
+    const strutDeg = dir==='dn'
+      ? lerpAng(strutRet, strutExt, gS)
+      : lerpAng(strutExt, strutRet, gS);
+    const rad=strutDeg*Math.PI/180;
+    const sx=mx+Math.cos(rad)*SM;
+    const sy=MY+Math.sin(rad)*SM;
+    g2.strokeStyle=RED; g2.lineWidth=2.5; g2.setLineDash([]);
+    g2.beginPath(); g2.moveTo(mx,MY); g2.lineTo(sx,sy); g2.stroke();
+    tri(sx, sy, RED, Math.min(gS*2.2, 1));
+  }
+}
+
+
+/* ─── BRAKE TEMP PANEL ──────────────────────────
+   Real A320 ECAM: two wheel arc symbols (upper + lower semicircle)
+   Temperature above, wheel number + REL label below
+─────────────────────────────────────────────────── */
+function drawBrake(side,mx,y){
+  const [w1,w2]=side==='left'?['1','2']:['3','4'];
+  const [t1,t2]=side==='left'?[BT.L1,BT.L2]:[BT.R3,BT.R4];
+  const tc=t=>t>300?RED:t>150?AMB:t>70?'#eedd00':GRN;
+
+  brkWhl(mx-36,y,t1,w1,tc(t1));
+  brkWhl(mx+36,y,t2,w2,tc(t2));
+
+  // Center °C label (cyan in real ECAM)
+  g2.fillStyle=CYN;g2.font='10px Share Tech Mono';g2.textAlign='center';
+  g2.fillText('°C',mx,y+8);
+  // REL label (amber)
+  g2.fillStyle=AMB;g2.font='10px Share Tech Mono';
+  g2.fillText('REL',mx,y+26);
+
+  addZ(mx,y+22,120,58,{
+    t:`${side==='left'?'Left':'Right'} Brake Temp`,
+    d:`Wheel ${w1}: ${Math.round(t1)}°C   Wheel ${w2}: ${Math.round(t2)}°C\n`+
+      `Status: ${Math.max(t1,t2)>300?'⚠ HOT':Math.max(t1,t2)>150?'WARM':'NORMAL'}\n`+
+      `Brake fan: ${CTRL.fan?'ON (cooling)':'OFF'}\nA/SKID: ${CTRL.skid?'ON':'OFF'}\n`+
+      `Auto brake: ${CTRL.abk}`
+  });
+}
+
+function brkWhl(wx,y,temp,num,col){
+  // Upper arc (top of wheel)
+  g2.strokeStyle='#2a3848';g2.lineWidth=1.5;
+  g2.beginPath();g2.arc(wx,y+20,21,-Math.PI*.88,Math.PI*.05);g2.stroke();
+  // Temperature value
+  g2.fillStyle=col;g2.font='bold 13px Share Tech Mono';g2.textAlign='center';
+  g2.fillText(Math.round(temp),wx,y+8);
+  // Wheel number
+  g2.fillStyle=WHT;g2.font='10px Share Tech Mono';
+  g2.fillText(num,wx,y+27);
+  // Lower arc (bottom of wheel)
+  g2.beginPath();g2.arc(wx,y+40,21,Math.PI*.08,Math.PI*.92);g2.stroke();
+}
+
+/* ─── CENTER MESSAGE ─── */
+function drawCenterMsg(){
+  const inT=['nose','left','right'].some(g=>isTrans(g));
+  const allUp=['nose','left','right'].every(g=>LG[g].ph==='up');
+  const allDn=['nose','left','right'].every(g=>LG[g].ph==='down');
+
+  if(inT){
+    // L/G CTL — pulses in amber during transit
+    const pulse=0.65+0.35*Math.sin(Date.now()*.0028);
+    g2.save();g2.globalAlpha=pulse;
+    g2.fillStyle=AMB;g2.font='bold 14px Share Tech Mono';
+    g2.textAlign='center';g2.fillText('L/G  CTL',EW/2,MY+75);
+    g2.restore();
+  } else if(allUp&&LG.lever==='up'){
+    // UP LOCK — amber text when gear up and locked
+    g2.fillStyle=AMB;g2.font='bold 13px Share Tech Mono';
+    g2.textAlign='center';g2.fillText('UP  LOCK',EW/2,MY+75);
+  }
+  // When gear is down+locked, no center label shown (normal state)
+}
+
+/* ─── DRAWING HELPERS ─── */
+function sline(x1,y1,x2,y2,col,lw){
+  g2.strokeStyle=col;g2.lineWidth=lw;g2.setLineDash([]);
+  g2.beginPath();g2.moveTo(x1,y1);g2.lineTo(x2,y2);g2.stroke();
+}
+function dline(x1,y1,x2,y2,col,lw,dash){
+  g2.strokeStyle=col;g2.lineWidth=lw;g2.setLineDash(dash);
+  g2.beginPath();g2.moveTo(x1,y1);g2.lineTo(x2,y2);g2.stroke();
+  g2.setLineDash([]);
+}
+function dot(x,y,r,col){
+  g2.fillStyle=col;g2.beginPath();g2.arc(x,y,r,0,Math.PI*2);g2.fill();
+}
+/* Hollow pivot circle at axle ends — matches real ECAM photo callout ②
+   Small unfilled circle marking the wheel-axle bearing point, drawn
+   at both ends of every horizontal axle line in all gear states. */
+function axleEnd(x,y,col){
+  g2.strokeStyle=col;g2.lineWidth=1.6;g2.setLineDash([]);
+  g2.beginPath();g2.arc(x,y,4,0,Math.PI*2);g2.stroke();
+}
+/* A320 gear triangle ▽ with horizontal hatch stripes */
+function tri(tx,ty,col,alpha){
+  const TW=30,TH=26;
+  g2.save();g2.globalAlpha=Math.max(0.1,alpha);
+  g2.strokeStyle=col;g2.lineWidth=2;g2.setLineDash([]);
+  g2.beginPath();
+  g2.moveTo(tx-TW/2,ty);g2.lineTo(tx+TW/2,ty);g2.lineTo(tx,ty+TH);g2.closePath();
+  g2.stroke();
+  g2.lineWidth=1.0;
+  for(let i=1;i<=7;i++){
+    const t=i/8,hw=(TW/2)*(1-t);
+    g2.beginPath();g2.moveTo(tx-hw,ty+TH*t);g2.lineTo(tx+hw,ty+TH*t);g2.stroke();
+  }
+  g2.restore();
+}
+
+/* ─── WARN BANNER ─── */
+function updWarn(){
+  const W=[];
+  if(['nose','left','right'].some(g=>isTrans(g))) W.push('L/G CTL');
+  if(LG.lever==='down'&&!['nose','left','right'].every(g=>LG[g].ph==='down')) W.push('L/G NOT DOWNLOCKED');
+  if(hydPsi<1500) W.push('HYD G LO PR');
+  if(!CTRL.skid)  W.push('A/SKID OFF');
+  if(Math.max(BT.L1,BT.L2,BT.R3,BT.R4)>300) W.push('BRAKES HOT');
+  if(SPL.sb>0)    W.push(`SPD BRK ${Math.round(SPL.sb*100)}%`);
+  if(LG.gravityUsed) W.push('L/G GRVTY EXTN — DOORS OPEN');
+  const el=document.getElementById('ecW');
+  if(W.length){el.textContent='⚠  '+[...new Set(W)].join('   ·   ')+'  ⚠';el.style.opacity='1';}
+  else el.style.opacity='0';
+}
+let wTmr=null;
+function showWarn(msg){
+  const el=document.getElementById('ecW');
+  el.textContent='⚠  '+msg+'  ⚠';el.style.opacity='1';
+  if(wTmr)clearTimeout(wTmr);
+  wTmr=setTimeout(()=>updWarn(),4000);
+}
+
+/* ─── HOVER ─── */
+const tip=document.getElementById('tip');
+cv.addEventListener('mousemove',ev=>{
+  const r=cv.getBoundingClientRect();
+  const sc=EW/r.width;
+  const mx=(ev.clientX-r.left)*sc,my=(ev.clientY-r.top)*sc;
+  const z=ZONES.find(z=>mx>=z.x&&mx<=z.x+z.w&&my>=z.y&&my<=z.y+z.h);
+  if(z){tip.innerHTML=`<b>${z.info.t}</b>${z.info.d.replace(/\n/g,'<br>')}`;
+    tip.style.left=(ev.clientX+12)+'px';tip.style.top=(ev.clientY-6)+'px';
+    tip.classList.add('show');}
+  else tip.classList.remove('show');
+});
+cv.addEventListener('mouseleave',()=>tip.classList.remove('show'));
+
+/* ─── CLOCK ─── */
+function tickClock(){
+  const n=new Date();
+  document.getElementById('ck').textContent=
+    n.getUTCHours().toString().padStart(2,'0')+' H '+n.getUTCMinutes().toString().padStart(2,'0');
+}
+setInterval(()=>{tickClock();updWarn();},1000);
+tickClock();
+
+/* ─── SPLASH ─── */
+function splash(ev){
+  if(!document.getElementById('_rpl')){
+    const s=document.createElement('style');s.id='_rpl';
+    s.textContent='@keyframes rpl{to{width:36px;height:36px;opacity:0}}';
+    document.head.appendChild(s);}
+  const d=document.createElement('div');
+  Object.assign(d.style,{position:'fixed',left:ev.clientX+'px',top:ev.clientY+'px',
+    width:'0',height:'0',border:'2px solid '+GRN,borderRadius:'50%',
+    pointerEvents:'none',zIndex:'999',transform:'translate(-50%,-50%)',
+    animation:'rpl .3s ease-out forwards'});
+  document.body.appendChild(d);setTimeout(()=>d.remove(),380);
+}
+
+/* ─── KEYBOARD ─── */
+document.addEventListener('keydown',e=>{
+  if(e.key==='g') clickLever({clientX:300,clientY:200});
+  if(e.key==='h') setHP(hydPsi>0?0:3000);
+  if(e.key==='s') cycleSB();
+  if(e.key==='f') toggleFan();
+  if(e.key==='1') setABK('LO');
+  if(e.key==='2') setABK('MED');
+  if(e.key==='3') setABK('MAX');
+});
+
+/* ─── MAIN LOOP ─── */
+function loop(){draw();requestAnimationFrame(loop);}
+loop();
+</script>
+</body>
+</html>
